@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>E-SK DPC ASLINMAS | Sistem Penyusunan & Generator PDF SK 2026–2031</title>
+  <meta name="theme-color" content="#8B1E1E" />
+  <meta name="description" content="Sistem Penyusunan, Pengeditan, dan Generator PDF Surat Keputusan Pengurus DPC ASLINMAS Kabupaten/Kota Masa Bakti 2026–2031" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SK ASLINMAS" />
+
+  <!-- Dynamic PWA Manifest Link (diisi via JS Blob URL) -->
+  <link id="pwa-manifest" rel="manifest" href="" />
+
+  <!-- Google Fonts: Inter & Times New Roman / Serif untuk Dokumen Resmi -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Tinos', 'Times New Roman', 'serif'],
+          },
+          colors: {
+            patriot: {
+              50: '#FDF2F2',
+              100: '#FDE8E8',
+              200: '#FBD5D5',
+              600: '#B91C1C',
+              700: '#9B1C1C',
+              800: '#8B1E1E',
+              900: '#63171B',
+            },
+            emas: {
+              400: '#FBBF24',
+              500: '#D97706',
+              600: '#B45309',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- html2pdf.js untuk Export PDF langsung -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Gaya Dokumen Resmi SK */
+    .sk-document {
+      font-family: 'Tinos', 'Times New Roman', serif;
+      color: #000000;
+      background: #ffffff;
+      line-height: 1.45;
+      font-size: 11.5pt;
+    }
+
+    .sk-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5pt;
+    }
+
+    .sk-table th,
+    .sk-table td {
+      border: 1px solid #000000;
+      padding: 5px 7px;
+      vertical-align: top;
+    }
+
+    .sk-table th {
+      background-color: #f3f4f6;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .page-break-before {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .avoid-break {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    /* Print Styling (F4 / A4 Native Print) */
+    @media print {
+      body {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      #print-area-wrapper {
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: #ffffff !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      #sk-printable-area {
+        box-shadow: none !important;
+        padding: 10mm 12mm !important;
+        margin: 0 !important;
+        width: 100% !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased selection:bg-patriot-800 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- KONFIGURASI KONEKSI GITHUB PAGES -> GOOGLE APPS SCRIPT WEB APP        -->
+  <!-- ===================================================================== -->
+  <script>
+    const IS_PREVIEW = false; // false = terhubung langsung ke Google Apps Script
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwZR1-956jpecw3wveiipmyJS6Gc9_GgJtAp1HilqdXBCdaZ8Rn1lP0T85DDwsvAhHjPg/exec";
+
+    // Helper Fetch API ke Google Apps Script (menggunakan text/plain agar bebas CORS preflight)
+    async function callGasApi(action, payload = {}) {
+      const response = await fetch(GAS_WEBAPP_URL, {
+        method: "POST",
+        redirect: "follow",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify({ action, ...payload })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error ${response.status}`);
+      }
+
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        throw new Error("Respons server bukan JSON valid. Pastikan fungsi doPost(e) sudah dipasang & di-deploy ulang.");
+      }
+    }
+  </script>
+
+  <!-- ===================================================================== -->
+  <!-- TOAST / MESSAGE BOX (PENGGANTI ALERT)                                 -->
+  <!-- ===================================================================== -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print px-4 sm:px-0"></div>
+
+  <!-- ===================================================================== -->
+  <!-- BANNER INSTALL PWA                                                    -->
+  <!-- ===================================================================== -->
+  <div id="pwa-install-banner" class="hidden fixed bottom-20 lg:bottom-5 right-4 left-4 lg:left-auto lg:w-96 z-40 bg-gradient-to-r from-patriot-900 to-patriot-800 text-white p-4 rounded-2xl shadow-2xl border border-emas-500/40 no-print transition-all">
+    <div class="flex items-start gap-3">
+      <div class="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-emas-400/50">
+        <i data-lucide="smartphone" class="w-6 h-6 text-emas-400"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h4 class="font-bold text-sm text-white">Install Aplikasi E-SK ASLINMAS</h4>
+        <p class="text-xs text-red-100 mt-0.5 leading-relaxed">Pasang ke layar utama HP/Laptop untuk akses cepat & simpan draf offline.</p>
+        <div class="flex items-center gap-2 mt-3">
+          <button id="btn-pwa-install-trigger" onclick="triggerPwaInstall()" class="px-3.5 py-1.5 bg-emas-500 hover:bg-emas-600 text-white text-xs font-semibold rounded-lg shadow transition cursor-pointer">
+            Install Sekarang
+          </button>
+          <button onclick="dismissPwaBanner()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition cursor-pointer">
+            Nanti Saja
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL BANTUAN INSTALL PWA MANUAL                                      -->
+  <!-- ===================================================================== -->
+  <div id="modal-pwa-help" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-patriot-50 text-patriot-800 flex items-center justify-center">
+            <i data-lucide="download-cloud" class="w-5 h-5"></i>
+          </div>
+          <h3 class="font-bold text-slate-900">Cara Install Aplikasi (PWA)</h3>
+        </div>
+        <button onclick="closeModal('modal-pwa-help')" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="mt-4 space-y-3 text-sm text-slate-600">
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+          <p class="font-semibold text-slate-800 mb-1">📱 Android (Google Chrome):</p>
+          <p class="text-xs leading-relaxed">Ketuk ikon menu <strong>titik tiga (⋮)</strong> di pojok kanan atas browser, lalu pilih <strong>"Tambahkan ke Layar utama"</strong> atau <strong>"Install aplikasi"</strong>.</p>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+          <p class="font-semibold text-slate-800 mb-1">🍎 iPhone / iPad (Safari):</p>
+          <p class="text-xs leading-relaxed">Ketuk ikon <strong>Bagikan (Share)</strong> di bagian bawah layar, gulir ke bawah dan pilih <strong>"Tambah ke Layar Utama" (Add to Home Screen)</strong>.</p>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/70">
+          <p class="font-semibold text-slate-800 mb-1">💻 Laptop / PC (Chrome / Edge):</p>
+          <p class="text-xs leading-relaxed">Klik ikon <strong>Install (layar dengan panah)</strong> di sisi kanan bilah alamat URL browser Anda.</p>
+        </div>
+      </div>
+      <div class="mt-5 flex justify-end">
+        <button onclick="closeModal('modal-pwa-help')" class="px-4 py-2 bg-patriot-800 text-white text-sm font-semibold rounded-xl hover:bg-patriot-900 transition">
+          Mengerti
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 1: HALAMAN LOGIN                                                 -->
+  <!-- ===================================================================== -->
+  <div id="login-view" class="min-h-screen flex flex-col justify-center items-center p-4 bg-gradient-to-br from-patriot-900 via-patriot-800 to-slate-900 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 pointer-events-none">
+      <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-emas-400 blur-3xl"></div>
+      <div class="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-red-500 blur-3xl"></div>
+    </div>
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-white/20 relative z-10">
+      <div class="bg-gradient-to-r from-patriot-900 to-patriot-800 p-6 text-center text-white border-b-4 border-emas-500">
+        <div class="w-20 h-20 mx-auto mb-3 bg-white rounded-full p-1.5 shadow-lg flex items-center justify-center" id="login-logo-container"></div>
+        <span class="inline-block px-3 py-0.5 rounded-full bg-emas-500/20 border border-emas-400/50 text-emas-400 text-[11px] font-bold tracking-wider uppercase mb-1">
+          Patriot Pelindung Masyarakat
+        </span>
+        <h1 class="text-xl font-extrabold tracking-tight">E-SK DPC ASLINMAS</h1>
+        <p class="text-xs text-red-100 mt-1">Sistem Penyusunan & Generator PDF SK Pengurus<br/>Kabupaten/Kota Masa Bakti 2026–2031</p>
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)" class="p-6 sm:p-8 space-y-4">
+        <div id="preview-badge" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2.5">
+          <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+          <div>
+            <p class="font-bold">Mode Preview Aktif (IS_PREVIEW = true)</p>
+            <p class="mt-0.5">Menggunakan penyimpanan lokal browser.</p>
+          </div>
+        </div>
+
+        <div>
+          <label for="login-username" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Username / Kode Daerah</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i data-lucide="user" class="w-4 h-4"></i>
+            </span>
+            <input type="text" id="login-username" required autocomplete="username" placeholder="Masukkan username..."
+              class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 focus:border-patriot-800 outline-none transition" />
+          </div>
+        </div>
+
+        <div>
+          <label for="login-password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Kata Sandi</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </span>
+            <input type="password" id="login-password" required autocomplete="current-password" placeholder="Masukkan password..."
+              class="w-full pl-10 pr-11 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 focus:border-patriot-800 outline-none transition" />
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+              <i id="eye-icon" data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-login-submit"
+          class="w-full py-3 px-4 bg-gradient-to-r from-patriot-800 to-patriot-700 hover:from-patriot-900 hover:to-patriot-800 text-white font-bold rounded-xl shadow-lg shadow-patriot-800/30 transition flex items-center justify-center gap-2 cursor-pointer">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>Masuk ke Sistem</span>
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-xs text-red-200/80 mt-6 relative z-10">
+      Asosiasi Satuan Pelindungan Masyarakat (ASLINMAS Indonesia) &bull; 2026
+    </p>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 2: APLIKASI UTAMA (DASHBOARD & GENERATOR SK)                     -->
+  <!-- ===================================================================== -->
+  <div id="app-view" class="hidden min-h-screen flex flex-col lg:flex-row">
+
+    <!-- SIDEBAR DESKTOP -->
+    <aside class="hidden lg:flex lg:flex-col lg:w-72 lg:fixed lg:inset-y-0 bg-gradient-to-b from-patriot-900 via-patriot-800 to-slate-900 text-white z-30 shadow-xl no-print">
+      <div class="p-5 border-b border-white/10 flex items-center gap-3">
+        <div class="w-11 h-11 bg-white rounded-full p-1 shrink-0 shadow" id="sidebar-logo-container"></div>
+        <div class="min-w-0">
+          <h2 class="font-extrabold text-sm tracking-tight truncate">E-SK DPC ASLINMAS</h2>
+          <p class="text-[11px] text-emas-400 font-medium truncate">Masa Bakti 2026–2031</p>
+        </div>
+      </div>
+
+      <div class="p-4 mx-3 mt-4 rounded-2xl bg-white/10 border border-white/10">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emas-500 text-white font-bold flex items-center justify-center text-sm shrink-0" id="user-avatar-desktop">
+            OP
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold text-white truncate" id="user-kabkota-desktop">KABUPATEN MALANG</p>
+            <p class="text-[11px] text-red-200 truncate" id="user-role-desktop">Operator DPC</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="flex-1 px-3 py-5 space-y-1.5 overflow-y-auto">
+        <button onclick="switchTab('dashboard')" data-nav="dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition text-left bg-white/15 text-white">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-emas-400"></i>
+          <span>Beranda & Ringkasan</span>
+        </button>
+        <button onclick="switchTab('identitas')" data-nav="identitas" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-100 hover:bg-white/10 hover:text-white transition text-left">
+          <i data-lucide="file-text" class="w-4 h-4 text-emas-400"></i>
+          <span>Identitas & Kop SK</span>
+        </button>
+        <button onclick="switchTab('pengurus')" data-nav="pengurus" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-100 hover:bg-white/10 hover:text-white transition text-left">
+          <i data-lucide="users" class="w-4 h-4 text-emas-400"></i>
+          <span>Susunan Pengurus</span>
+          <span id="badge-count-pengurus" class="ml-auto px-2 py-0.5 text-[10px] font-bold rounded-full bg-emas-500 text-white">0</span>
+        </button>
+        <button onclick="switchTab('preview')" data-nav="preview" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-100 hover:bg-white/10 hover:text-white transition text-left">
+          <i data-lucide="printer" class="w-4 h-4 text-emas-400"></i>
+          <span>Pratinjau & Unduh PDF</span>
+        </button>
+        <button id="nav-admin-desktop" onclick="switchTab('admin')" data-nav="admin" class="hidden nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-100 hover:bg-white/10 hover:text-white transition text-left">
+          <i data-lucide="shield" class="w-4 h-4 text-emas-400"></i>
+          <span>Manajemen Akun Daerah</span>
+        </button>
+      </nav>
+
+      <div class="p-4 border-t border-white/10 space-y-2">
+        <button onclick="openModal('modal-pwa-help')" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-medium text-red-100 transition cursor-pointer">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5 text-emas-400"></i>
+          <span>Install Aplikasi (PWA)</span>
+        </button>
+        <button onclick="handleLogout()" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-red-950/60 hover:bg-red-950 text-xs font-semibold text-red-200 hover:text-white transition cursor-pointer">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          <span>Keluar Aplikasi</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- HEADER MOBILE -->
+    <header class="lg:hidden sticky top-0 z-30 bg-gradient-to-r from-patriot-900 to-patriot-800 text-white px-4 py-3 shadow-md flex items-center justify-between no-print">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 bg-white rounded-full p-0.5 shrink-0" id="mobile-logo-container"></div>
+        <div class="min-w-0">
+          <h1 class="font-extrabold text-sm leading-tight truncate">E-SK DPC ASLINMAS</h1>
+          <p class="text-[11px] text-emas-400 font-medium truncate" id="user-kabkota-mobile">KABUPATEN MALANG</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button onclick="openModal('modal-pwa-help')" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white" title="Install PWA">
+          <i data-lucide="download" class="w-4 h-4"></i>
+        </button>
+        <button onclick="handleLogout()" class="p-2 rounded-xl bg-red-950/60 hover:bg-red-950 text-red-100" title="Keluar">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 lg:pl-72 pb-24 lg:pb-10">
+      <div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- TAB 1: BERANDA / DASHBOARD -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+          <div class="bg-gradient-to-r from-patriot-900 via-patriot-800 to-patriot-700 rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div class="space-y-2 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-emas-400 text-xs font-bold">
+                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                  <span id="dash-status-mode">Terhubung Database</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight" id="dash-title-kabkota">DPC ASLINMAS KABUPATEN MALANG</h2>
+                <p class="text-sm text-red-100 leading-relaxed">
+                  Lengkapi identitas surat keputusan dan susunan pengurus dari Dewan Pelindung hingga Bidang-Bidang Organisasi, lalu unduh draf SK resmi dalam format PDF.
+                </p>
+              </div>
+              <div class="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
+                <button onclick="switchTab('pengurus')" class="w-full sm:w-auto px-5 py-3 bg-emas-500 hover:bg-emas-600 text-white font-bold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                  <i data-lucide="user-plus" class="w-4 h-4"></i>
+                  <span>Isi / Edit Pengurus</span>
+                </button>
+                <button onclick="switchTab('preview')" class="w-full sm:w-auto px-5 py-3 bg-white text-patriot-900 hover:bg-slate-100 font-bold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+                  <i data-lucide="file-down" class="w-4 h-4"></i>
+                  <span>Lihat & Unduh PDF</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase">Total Pengurus</span>
+                <div class="w-9 h-9 rounded-xl bg-patriot-50 text-patriot-800 flex items-center justify-center">
+                  <i data-lucide="users" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2" id="stat-total-pengurus">0</p>
+              <p class="text-xs text-slate-500 mt-1">Tercatat dalam Lampiran I</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase">Kelompok Terisi</span>
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                  <i data-lucide="layers" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2"><span id="stat-kelompok-terisi">0</span><span class="text-base font-semibold text-slate-400">/18</span></p>
+              <p class="text-xs text-slate-500 mt-1">Struktur A s.d. R</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase">Nomor SK</span>
+                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+                  <i data-lucide="hash" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <p class="text-sm font-bold text-slate-900 mt-3 truncate" id="stat-nomor-sk">001/SK/DPP-ASLINMAS/XI/2026</p>
+              <p class="text-xs text-slate-500 mt-1" id="stat-tanggal-sk">23 November 2026</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-400 uppercase">Masa Bakti</span>
+                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+                  <i data-lucide="calendar" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <p class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2" id="stat-masa-bakti">2026 – 2031</p>
+              <p class="text-xs text-slate-500 mt-1">Sesuai Mandat DPP</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-slate-900">Kelengkapan Susunan Kepengurusan (A – R)</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Klik salah satu struktur untuk langsung menambah atau mengedit nama pengurus di dalamnya.</p>
+              </div>
+              <button onclick="resetToDefaultTemplate()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5 self-start cursor-pointer">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                <span>Muat Contoh Draf Awal</span>
+              </button>
+            </div>
+            <div id="dashboard-group-grid" class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+          </div>
+        </section>
+
+        <!-- TAB 2: IDENTITAS & KOP SK -->
+        <section id="tab-identitas" class="tab-content hidden space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+              <h2 class="text-lg font-extrabold text-slate-900">Identitas Surat Keputusan & Pengesahan</h2>
+              <p class="text-xs text-slate-500 mt-1">Data di bawah ini akan otomatis mengisi judul SK, diktum penetapan, lampiran, dan blok tanda tangan.</p>
+            </div>
+
+            <form id="form-identitas-sk" onsubmit="saveIdentitasSK(event)" class="p-6 space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nama Kabupaten / Kota *</label>
+                  <input type="text" id="input-kabkota" required placeholder="Contoh: KABUPATEN MALANG atau KOTA SURABAYA"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold uppercase focus:ring-2 focus:ring-patriot-800 focus:border-patriot-800 outline-none" />
+                  <p class="text-[11px] text-slate-400 mt-1">Gunakan huruf kapital, misal: KABUPATEN MALANG</p>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nomor Surat Keputusan *</label>
+                  <input type="text" id="input-nomor-sk" required placeholder="Contoh: 001/SK/DPP-ASLINMAS/XI/2026"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 focus:border-patriot-800 outline-none" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tempat Ditetapkan *</label>
+                  <input type="text" id="input-tempat-sk" required placeholder="Contoh: Jakarta"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 focus:border-patriot-800 outline-none" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tanggal Penetapan *</label>
+                  <input type="text" id="input-tanggal-sk" required placeholder="Contoh: 23 November 2026"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 focus:border-patriot-800 outline-none" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Masa Bakti *</label>
+                  <input type="text" id="input-masa-bakti" required value="2026 – 2031"
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 focus:border-patriot-800 outline-none" />
+                </div>
+
+                <div class="flex items-center pt-5">
+                  <label class="flex items-start gap-3 cursor-pointer select-none">
+                    <input type="checkbox" id="input-sertakan-uraian" checked
+                      class="w-5 h-5 mt-0.5 rounded text-patriot-800 focus:ring-patriot-800 border-slate-300" />
+                    <div>
+                      <span class="text-sm font-bold text-slate-800 block">Sertakan Lampiran II (Uraian Tugas)</span>
+                      <span class="text-xs text-slate-500">Mencantumkan rincian tugas Dewan Pelindung s.d. Bidang-bidang di halaman akhir PDF.</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="pt-5 border-t border-slate-200">
+                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                  <i data-lucide="pen-tool" class="w-4 h-4 text-patriot-800"></i>
+                  <span>Pejabat Penandatangan DPP ASLINMAS Indonesia</span>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Ketua Umum DPP</label>
+                    <input type="text" id="input-ketum" required
+                      class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Sekretaris Jenderal</label>
+                    <input type="text" id="input-sekjen" required
+                      class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Ketua Dewan Pengawas</label>
+                    <input type="text" id="input-pengawas" required
+                      class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="submit" id="btn-save-identitas" class="px-6 py-3 bg-patriot-800 hover:bg-patriot-900 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+                  <i data-lucide="save" class="w-4 h-4"></i>
+                  <span>Simpan Identitas SK</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- TAB 3: SUSUNAN PENGURUS -->
+        <section id="tab-pengurus" class="tab-content hidden space-y-5">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Susunan Pengurus DPC ASLINMAS</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Tambah, ubah, hapus, atau atur urutan pengurus berdasarkan struktur A s.d. R.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+              <button onclick="openPengurusModal()" class="px-4 py-2.5 bg-patriot-800 hover:bg-patriot-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Tambah Pengurus</span>
+              </button>
+              <button onclick="syncAllToBackend()" id="btn-sync-all" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
+                <i data-lucide="cloud-upload" class="w-4 h-4"></i>
+                <span>Simpan Semua</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="md:col-span-2">
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Filter Struktur / Bidang (A – R)</label>
+                <select id="filter-kelompok" onchange="renderPengurusList()"
+                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-patriot-800 outline-none">
+                  <option value="ALL">Tampilkan Semua Struktur (A s.d. R)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Cari Nama / Instansi</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                  </span>
+                  <input type="text" id="search-pengurus" oninput="renderPengurusList()" placeholder="Ketik nama atau jabatan..."
+                    class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="pengurus-list-container" class="space-y-4"></div>
+        </section>
+
+        <!-- TAB 4: PRATINJAU SK & DOWNLOAD PDF -->
+        <section id="tab-preview" class="tab-content hidden space-y-5">
+          <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Pratinjau Dokumen SK Resmi</h2>
+              <p class="text-xs text-slate-500">Periksa kembali kesesuaian nama, gelar, dan jabatan sebelum mengunduh PDF.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+              <select id="pdf-paper-size" class="px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 outline-none">
+                <option value="f4">Kertas F4 / Folio (215 × 330 mm)</option>
+                <option value="a4">Kertas A4 (210 × 297 mm)</option>
+              </select>
+              <button onclick="downloadPdfDocument()" id="btn-download-pdf"
+                class="px-4 py-2.5 bg-patriot-800 hover:bg-patriot-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+                <i data-lucide="file-down" class="w-4 h-4"></i>
+                <span>Download PDF</span>
+              </button>
+              <button onclick="window.print()"
+                class="px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+                <span>Cetak / Print</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="print-area-wrapper" class="bg-slate-300/70 p-2 sm:p-6 rounded-2xl overflow-x-auto">
+            <div id="sk-printable-area" class="sk-document mx-auto bg-white shadow-xl p-6 sm:p-12 max-w-[215mm] min-h-[330mm]"></div>
+          </div>
+        </section>
+
+        <!-- TAB 5: MANAJEMEN AKUN DAERAH (ADMIN) -->
+        <section id="tab-admin" class="tab-content hidden space-y-5">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Manajemen Akun Kabupaten / Kota</h2>
+              <p class="text-xs text-slate-500">Kelola akses login operator DPC ASLINMAS tiap Kabupaten/Kota se-Jawa Timur.</p>
+            </div>
+            <button onclick="openUserModal()" class="px-4 py-2.5 bg-patriot-800 hover:bg-patriot-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-2 self-start cursor-pointer">
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+              <span>Tambah Akun Daerah</span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase">
+                    <th class="py-3.5 px-4">Kabupaten / Kota</th>
+                    <th class="py-3.5 px-4">Username</th>
+                    <th class="py-3.5 px-4">Password</th>
+                    <th class="py-3.5 px-4">Role</th>
+                    <th class="py-3.5 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR (MOBILE) -->
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.06)] no-print">
+      <button onclick="switchTab('dashboard')" data-nav="dashboard" class="nav-btn-mobile flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-patriot-800 font-bold">
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Beranda</span>
+      </button>
+      <button onclick="switchTab('identitas')" data-nav="identitas" class="nav-btn-mobile flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-500 font-medium">
+        <i data-lucide="file-text" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Kop SK</span>
+      </button>
+      <button onclick="switchTab('pengurus')" data-nav="pengurus" class="nav-btn-mobile flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-500 font-medium relative">
+        <i data-lucide="users" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Pengurus</span>
+      </button>
+      <button onclick="switchTab('preview')" data-nav="preview" class="nav-btn-mobile flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-500 font-medium">
+        <i data-lucide="file-down" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">PDF SK</span>
+      </button>
+      <button id="nav-admin-mobile" onclick="switchTab('admin')" data-nav="admin" class="hidden nav-btn-mobile flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-500 font-medium">
+        <i data-lucide="shield" class="w-5 h-5"></i>
+        <span class="text-[10px] mt-0.5">Akun</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL TAMBAH / EDIT PENGURUS                                          -->
+  <!-- ===================================================================== -->
+  <div id="modal-pengurus" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modal-pengurus-title" class="font-extrabold text-slate-900">Tambah Anggota Pengurus</h3>
+        <button onclick="closeModal('modal-pengurus')" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-pengurus" onsubmit="savePengurusItem(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="edit-pengurus-id" />
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Kelompok / Bidang Struktur *</label>
+          <select id="modal-kelompok" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-patriot-800 outline-none"></select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nama Lengkap & Gelar *</label>
+          <input type="text" id="modal-nama" required placeholder="Contoh: Dr. Ir. Budi Santoso, M.Si."
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Jabatan dalam Instansi / Lembaga *</label>
+          <input type="text" id="modal-instansi" required placeholder="Contoh: Sekretaris Daerah Kabupaten Malang"
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Jabatan dalam ASLINMAS *</label>
+          <div class="flex gap-2">
+            <input type="text" id="modal-jabatan-aslinmas" required placeholder="Contoh: Ketua / Wakil Ketua I / Anggota"
+              class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
+            <select onchange="if(this.value) document.getElementById('modal-jabatan-aslinmas').value = this.value"
+              class="px-2.5 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 outline-none">
+              <option value="">Pilih Cepat...</option>
+              <option value="Ketua">Ketua</option>
+              <option value="Wakil Ketua I">Wakil Ketua I</option>
+              <option value="Wakil Ketua II">Wakil Ketua II</option>
+              <option value="Wakil Ketua III">Wakil Ketua III</option>
+              <option value="Sekretaris">Sekretaris</option>
+              <option value="Wakil Sekretaris I">Wakil Sekretaris I</option>
+              <option value="Wakil Sekretaris II">Wakil Sekretaris II</option>
+              <option value="Bendahara">Bendahara</option>
+              <option value="Wakil Bendahara I">Wakil Bendahara I</option>
+              <option value="Wakil Bendahara II">Wakil Bendahara II</option>
+              <option value="Anggota">Anggota</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex justify-end gap-2.5">
+          <button type="button" onclick="closeModal('modal-pengurus')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-patriot-800 hover:bg-patriot-900 text-white text-xs font-bold rounded-xl shadow transition cursor-pointer">
+            Simpan Pengurus
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL TAMBAH / EDIT USER AKUN DAERAH (ADMIN)                          -->
+  <!-- ===================================================================== -->
+  <div id="modal-user" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modal-user-title" class="font-extrabold text-slate-900">Tambah Akun Kabupaten/Kota</h3>
+        <button onclick="closeModal('modal-user')" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="form-user" onsubmit="saveUserAccount(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="edit-user-id" />
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nama Kabupaten / Kota *</label>
+          <input type="text" id="user-input-kabkota" required placeholder="Contoh: KABUPATEN SIDOARJO"
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm uppercase outline-none focus:ring-2 focus:ring-patriot-800" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username *</label>
+          <input type="text" id="user-input-username" required placeholder="Contoh: sidoarjo"
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-patriot-800" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Password *</label>
+          <input type="text" id="user-input-password" required placeholder="Masukkan password..."
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-patriot-800" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Role Akses *</label>
+          <select id="user-input-role" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-patriot-800">
+            <option value="Operator">Operator Kab/Kota</option>
+            <option value="Admin">Admin Provinsi</option>
+          </select>
+        </div>
+        <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
+          <button type="button" onclick="closeModal('modal-user')" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl">Batal</button>
+          <button type="submit" class="px-5 py-2 bg-patriot-800 text-white text-xs font-bold rounded-xl">Simpan Akun</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- LOGIKA UTAMA APLIKASI (JAVASCRIPT)                                    -->
+  <!-- ===================================================================== -->
+  <script>
+    const ASLINMAS_LOGO_SVG = `
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+        <circle cx="100" cy="100" r="95" fill="#63171B" stroke="#D97706" stroke-width="5"/>
+        <circle cx="100" cy="100" r="76" fill="#FFFFFF" stroke="#D97706" stroke-width="2"/>
+        <path d="M62 52 L138 52 L138 102 C138 130 100 148 100 148 C100 148 62 130 62 102 Z" fill="#B91C1C" stroke="#FBBF24" stroke-width="4"/>
+        <circle cx="100" cy="84" r="21" fill="#15803D"/>
+        <circle cx="86" cy="90" r="13" fill="#166534"/>
+        <circle cx="114" cy="90" r="13" fill="#166534"/>
+        <rect x="96" y="96" width="8" height="22" fill="#451A03"/>
+        <line x1="74" y1="68" x2="126" y2="120" stroke="#FBBF24" stroke-width="4" stroke-linecap="round"/>
+        <line x1="126" y1="68" x2="74" y2="120" stroke="#FBBF24" stroke-width="4" stroke-linecap="round"/>
+        <rect x="72" y="114" width="56" height="13" rx="3" fill="#FBBF24" stroke="#78350F" stroke-width="1"/>
+        <text x="100" y="123" font-family="Arial, sans-serif" font-size="8.5" font-weight="bold" fill="#451A03" text-anchor="middle">LINMAS</text>
+        <path d="M45 142 Q100 156 155 142 L150 154 Q100 168 50 154 Z" fill="#D97706"/>
+        <text x="100" y="153" font-family="Arial, sans-serif" font-size="6.2" font-weight="bold" fill="#FFFFFF" text-anchor="middle">PATRIOT PELINDUNG MASYARAKAT</text>
+        <text x="100" y="17" font-family="Arial, sans-serif" font-size="7.5" font-weight="bold" fill="#FDE68A" text-anchor="middle">ASOSIASI SATUAN PELINDUNGAN MASYARAKAT</text>
+        <text x="100" y="189" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#FDE68A" text-anchor="middle">ASLINMAS INDONESIA</text>
+      </svg>
+    `;
+
+    const STRUKTUR_KELOMPOK = [
+      { kode: 'A', nama: 'DEWAN PELINDUNG' },
+      { kode: 'B', nama: 'DEWAN PEMBINA' },
+      { kode: 'C', nama: 'DEWAN PENASIHAT' },
+      { kode: 'D', nama: 'DEWAN PAKAR' },
+      { kode: 'E', nama: 'DEWAN PENGAWAS' },
+      { kode: 'F', nama: 'DEWAN PIMPINAN CABANG (KETUA & WAKIL KETUA)' },
+      { kode: 'G', nama: 'SEKRETARIS' },
+      { kode: 'H', nama: 'BENDAHARA' },
+      { kode: 'I', nama: 'BIDANG ORGANISASI, KADERISASI, DAN KEANGGOTAAN' },
+      { kode: 'J', nama: 'BIDANG HUBUNGAN ANTAR LEMBAGA, MASYARAKAT DAN KERJA SAMA' },
+      { kode: 'K', nama: 'BIDANG EKONOMI DAN PENGEMBANGAN USAHA' },
+      { kode: 'L', nama: 'BIDANG PENGEMBANGAN OLAHRAGA DAN SENI BUDAYA' },
+      { kode: 'M', nama: 'BIDANG PEMBERDAYAAN MASYARAKAT, LINGKUNGAN HIDUP DAN KETAHANAN PANGAN' },
+      { kode: 'N', nama: 'BIDANG BELA NEGARA, BANTUAN HUKUM DAN ADVOKASI' },
+      { kode: 'O', nama: 'BIDANG PELINDUNGAN MASYARAKAT, KETENTERAMAN DAN KETERTIBAN UMUM' },
+      { kode: 'P', nama: 'BIDANG PENANGGULANGAN BENCANA, KEMANUSIAAN DAN TANGGAP DARURAT' },
+      { kode: 'Q', nama: 'BIDANG SOSIAL KEMASYARAKATAN, PEMBINAAN MENTAL DAN KEROHANIAN' },
+      { kode: 'R', nama: 'BIDANG PENGEMBANGAN SDM DAN TEKNOLOGI INFORMASI' }
+    ];
+
+    const URAIAN_TUGAS_DATA = [
+      {
+        kode: 'A', judul: 'DEWAN PELINDUNG',
+        tugas: [
+          'Memberikan perlindungan dan pengayoman terhadap keberadaan serta pelaksanaan kegiatan organisasi ASLINMAS sesuai kewenangan.',
+          'Memberikan arahan umum dalam pengembangan organisasi agar sejalan dengan kebijakan pemerintah/pemerintah daerah dan kepentingan masyarakat.',
+          'Mendukung sinergi kelembagaan antara ASLINMAS dengan pemerintah daerah, TNI, Polri, dan instansi terkait.',
+          'Mendorong penguatan organisasi dalam meningkatkan profesionalisme, kapasitas, dan kesejahteraan anggota.',
+          'Mendukung penyelesaian permasalahan strategis melalui koordinasi dan fasilitasi sesuai kewenangan.',
+          'Mendorong stabilitas dan ketertiban masyarakat melalui penguatan peran ASLINMAS dalam mendukung pelindungan masyarakat.',
+          'Menjaga keberlangsungan organisasi dengan memberikan dukungan moral dan kelembagaan sesuai kebutuhan.'
+        ]
+      },
+      {
+        kode: 'B', judul: 'DEWAN PEMBINA',
+        tugas: [
+          'Memberikan pembinaan, dukungan moral, dan arahan strategis terhadap keberlangsungan organisasi ASLINMAS.',
+          'Mendukung terciptanya hubungan yang harmonis antara ASLINMAS dengan pemerintah daerah, instansi/lembaga terkait, dan masyarakat.',
+          'Memberikan pertimbangan terhadap kebijakan strategis organisasi agar selaras dengan peraturan perundang-undangan.',
+          'Mendorong sinergi ASLINMAS dengan pemerintah dan pemerintah daerah dalam mendukung keamanan, ketenteraman, kesejahteraan, ketertiban umum, dan perlindungan masyarakat.',
+          'Mendukung penyelesaian permasalahan strategis organisasi sesuai kapasitas dan kewenangannya.'
+        ]
+      },
+      {
+        kode: 'C', judul: 'DEWAN PENASIHAT',
+        tugas: [
+          'Memberikan saran, masukan, dan pertimbangan kepada pengurus DPC ASLINMAS dalam penyusunan kebijakan dan program kerja organisasi.',
+          'Memberikan pendampingan dan konsultasi terkait pengembangan organisasi, peningkatan kapasitas anggota, serta pelaksanaan kegiatan.',
+          'Memberikan pertimbangan dalam penyelesaian permasalahan internal organisasi.',
+          'Mendorong penguatan nilai-nilai Pancasila, wawasan kebangsaan, persatuan, dan kesatuan dalam kegiatan organisasi.',
+          'Melakukan evaluasi serta memberikan rekomendasi terhadap pelaksanaan program kerja untuk meningkatkan efektivitas organisasi.'
+        ]
+      },
+      {
+        kode: 'D', judul: 'DEWAN PAKAR',
+        tugas: [
+          'Memberikan kajian dan rekomendasi terkait kebijakan, program kerja, dan pengembangan organisasi ASLINMAS.',
+          'Memberikan pertimbangan teknis dalam bidang pelindungan masyarakat, ketertiban umum, kebencanaan, sosial, ketahanan ekonomi dan bantuan hukum.',
+          'Mendukung peningkatan kompetensi SDM melalui pelatihan, pendidikan, dan pengembangan kapasitas anggota.',
+          'Memberikan solusi atas permasalahan strategis yang dihadapi organisasi berdasarkan keahlian dan bidang keilmuan.',
+          'Mendorong inovasi dan pengembangan organisasi melalui penerapan ilmu pengetahuan, teknologi, dan praktik terbaik.',
+          'Mendukung penyusunan program kerja melalui analisis kebutuhan dan rekomendasi berbasis data.',
+          'Membangun kerja sama keilmuan dan profesional dengan akademisi, praktisi, lembaga pendidikan, dan instansi terkait.'
+        ]
+      },
+      {
+        kode: 'E', judul: 'DEWAN PENGAWAS',
+        tugas: [
+          'Melaksanakan pengawasan organisasi terhadap pelaksanaan program kerja, kebijakan, dan kegiatan pengurus ASLINMAS.',
+          'Mengawasi pengelolaan keuangan guna memastikan penggunaan anggaran dan aset organisasi secara transparan, tertib, dan akuntabel.',
+          'Memastikan kepatuhan organisasi terhadap AD/ART, keputusan organisasi, dan peraturan perundang-undangan.',
+          'Melaksanakan monitoring dan evaluasi terhadap kinerja pengurus serta pencapaian program kerja organisasi.',
+          'Memberikan rekomendasi perbaikan atas penyimpangan, kelemahan, atau permasalahan dalam pengelolaan organisasi.',
+          'Mendorong tata kelola organisasi yang baik melalui penerapan prinsip integritas, transparansi, akuntabilitas, dan profesionalisme.',
+          'Menyampaikan hasil pengawasan kepada forum atau pihak yang berwenang sesuai mekanisme yang ditetapkan dalam AD/ART organisasi.'
+        ]
+      },
+      {
+        kode: 'F', judul: 'KETUA DEWAN PIMPINAN CABANG (DPC)',
+        tugas: [
+          'Memimpin, mengoordinasikan, dan bertanggung jawab atas seluruh penyelenggaraan kegiatan organisasi DPC ASLINMAS Kabupaten/Kota.',
+          'Menetapkan arah kebijakan, strategi, dan program kerja organisasi berdasarkan AD/ART serta hasil musyawarah organisasi.',
+          'Mengembangkan kerja sama dan kemitraan dengan pemerintah daerah, Satpol PP, Bakesbangpol, BPBD, TNI, Polri, instansi dan lembaga terkait sesuai tugas dan kewenangan masing-masing.',
+          'Melakukan pembinaan, pengawasan, dan evaluasi terhadap pelaksanaan tugas seluruh pengurus dan bidang organisasi.',
+          'Mewakili organisasi dalam kegiatan koordinasi, konsultasi, kerja sama, serta forum resmi sesuai ketentuan organisasi.',
+          'Mendorong peningkatan kapasitas, profesionalitas, solidaritas, dan kesejahteraan anggota ASLINMAS.'
+        ]
+      },
+      {
+        kode: 'G', judul: 'WAKIL KETUA DPC',
+        tugas: [
+          'Membantu Ketua DPC dalam memimpin, mengoordinasikan, dan mengendalikan pelaksanaan program kerja organisasi.',
+          'Mengoordinasikan pelaksanaan tugas seluruh bidang agar berjalan secara efektif, terpadu, dan berkesinambungan.',
+          'Melaksanakan pemantauan dan evaluasi terhadap perkembangan kegiatan serta pencapaian target program organisasi.',
+          'Memfasilitasi penyelesaian permasalahan dan hambatan pelaksanaan kegiatan antarbidang.',
+          'Mewakili Ketua DPC apabila berhalangan berdasarkan penugasan atau ketentuan organisasi.',
+          'Menyampaikan laporan, masukan, dan rekomendasi kepada Ketua DPC terkait perkembangan dan kebutuhan organisasi.'
+        ]
+      },
+      {
+        kode: 'H', judul: 'SEKRETARIS',
+        tugas: [
+          'Menyelenggarakan administrasi umum, tata persuratan, dokumentasi, dan pengarsipan organisasi.',
+          'Menyusun rencana kegiatan, jadwal rapat, agenda organisasi, serta administrasi pelaksanaan program kerja.',
+          'Menyiapkan bahan rapat, undangan, daftar hadir, notula, dan laporan hasil kegiatan organisasi.',
+          'Mengelola data kepengurusan, dokumen kelembagaan, serta administrasi keanggotaan bersama Bidang Organisasi dan Keanggotaan.',
+          'Mengoordinasikan penyusunan laporan pelaksanaan kegiatan dari seluruh bidang organisasi.',
+          'Menyiapkan dokumen kerja sama, surat keputusan, dan administrasi organisasi sesuai arahan Ketua DPC.',
+          'Menjaga ketertiban, keamanan, dan kerahasiaan dokumen organisasi sesuai ketentuan yang berlaku.'
+        ]
+      },
+      {
+        kode: 'I', judul: 'BENDAHARA',
+        tugas: [
+          'Menyusun rencana anggaran pendapatan dan belanja organisasi berdasarkan program kerja yang telah ditetapkan.',
+          'Mengelola penerimaan, penyimpanan, dan pengeluaran dana organisasi sesuai ketentuan dan keputusan pengurus ASLINMAS.',
+          'Melaksanakan pencatatan dan pembukuan seluruh transaksi keuangan organisasi secara tertib, transparan, dan akuntabel.',
+          'Mengelola administrasi keuangan, termasuk bukti penerimaan, pengeluaran, kuitansi, dan dokumen pertanggungjawaban keuangan.',
+          'Mengelola iuran anggota, sumbangan, bantuan, dan sumber pendanaan organisasi lainnya yang sah serta tidak mengikat.',
+          'Melaksanakan pembayaran dan pembiayaan kegiatan organisasi berdasarkan persetujuan pengurus yang berwenang.',
+          'Menyusun laporan keuangan organisasi secara berkala sebagai bentuk pertanggungjawaban kepada Ketua dan pengurus ASLINMAS.'
+        ]
+      },
+      {
+        kode: 'J', judul: 'BIDANG ORGANISASI, KADERISASI, DAN KEANGGOTAAN',
+        tugas: [
+          'Melaksanakan pendataan, pendampingan, dan pengembangan keanggotaan ASLINMAS di wilayah Kabupaten/Kota.',
+          'Mengoordinasikan pembentukan dan penguatan kepengurusan ASLINMAS di tingkat kecamatan/desa/kelurahan sesuai AD/ART organisasi.',
+          'Menyusun dan mengelola database anggota serta administrasi keanggotaan secara tertib dan berkelanjutan.',
+          'Melaksanakan pembinaan organisasi, kaderisasi, dan peningkatan kapasitas kepemimpinan anggota.',
+          'Menyosialisasikan AD/ART, peraturan organisasi, kode etik, serta hak dan kewajiban anggota.'
+        ]
+      },
+      {
+        kode: 'K', judul: 'BIDANG HUBUNGAN ANTAR LEMBAGA, MASYARAKAT DAN KERJA SAMA',
+        tugas: [
+          'Membangun dan mengembangkan komunikasi, koordinasi, serta kerja sama dengan pemerintah daerah, instansi vertikal, dan lembaga terkait.',
+          'Menjalin kemitraan dengan Satpol PP, Bakesbangpol, BPBD, TNI, Polri, organisasi kemasyarakatan, serta lembaga lainnya sesuai ketentuan.',
+          'Memfasilitasi kerja sama dalam penyelenggaraan kegiatan peningkatan kapasitas, perlindungan masyarakat, dan pemberdayaan anggota.',
+          'Mengembangkan jejaring informasi dan komunikasi antarorganisasi untuk mendukung kewaspadaan dini terhadap potensi kerawanan sosial.'
+        ]
+      },
+      {
+        kode: 'L', judul: 'BIDANG EKONOMI DAN PENGEMBANGAN USAHA',
+        tugas: [
+          'Menyusun program kerja bidang ekonomi dan pengembangan usaha dalam rangka meningkatkan kesejahteraan dan kemandirian ekonomi anggota ASLINMAS.',
+          'Mendorong pengembangan usaha mikro, kecil, dan menengah (UMKM), kewirausahaan, serta kegiatan ekonomi produktif bagi anggota dan masyarakat.',
+          'Membangun kerja sama dan kemitraan dengan pemerintah daerah, dunia usaha, koperasi, UMKM, serta lembaga ekonomi lainnya.',
+          'Mendorong pembentukan dan pengembangan koperasi atau unit usaha bersama sebagai sarana peningkatan kesejahteraan anggota.'
+        ]
+      },
+      {
+        kode: 'M', judul: 'BIDANG PENGEMBANGAN OLAHRAGA DAN SENI BUDAYA',
+        tugas: [
+          'Menyusun dan melaksanakan program pembinaan olahraga dan pelestarian seni budaya daerah bagi anggota ASLINMAS dan masyarakat.',
+          'Membangun sinergi dengan KONI, dinas terkait, sanggar seni, serta perguruan pencak silat/olahraga masyarakat.',
+          'Menyelenggarakan kegiatan olahraga bersama dan pentas budaya untuk mempererat solidaritas dan kebersamaan anggota.'
+        ]
+      },
+      {
+        kode: 'N', judul: 'BIDANG PEMBERDAYAAN MASYARAKAT, LINGKUNGAN HIDUP DAN KETAHANAN PANGAN',
+        tugas: [
+          'Menyusun dan melaksanakan program pemberdayaan masyarakat, lingkungan hidup, dan ketahanan pangan untuk meningkatkan kemandirian masyarakat.',
+          'Mendorong keterlibatan anggota dalam kegiatan sosial, gotong royong, pelestarian lingkungan, dan pembangunan masyarakat.',
+          'Melaksanakan sosialisasi wawasan kebangsaan, nilai-nilai Pancasila, toleransi, dan penguatan persatuan serta kesatuan bangsa.'
+        ]
+      },
+      {
+        kode: 'O', judul: 'BIDANG BELA NEGARA, BANTUAN HUKUM DAN ADVOKASI',
+        tugas: [
+          'Memberikan informasi dan konsultasi hukum terkait hak, kewajiban, serta permasalahan anggota ASLINMAS.',
+          'Memfasilitasi bantuan dan pendampingan hukum bagi anggota yang menghadapi permasalahan dalam pelaksanaan tugas.',
+          'Meningkatkan kesadaran dan pemahaman hukum dan bela negara anggota melalui sosialisasi dan edukasi.',
+          'Menjalin kerja sama dengan advokat, Lembaga Bantuan Hukum (LBH), dan instansi terkait.'
+        ]
+      },
+      {
+        kode: 'P', judul: 'BIDANG PELINDUNGAN MASYARAKAT, KETENTERAMAN DAN KETERTIBAN UMUM',
+        tugas: [
+          'Menyusun program kegiatan organisasi dalam mendukung peningkatan kesadaran dan partisipasi masyarakat terhadap ketenteraman, ketertiban umum, serta perlindungan masyarakat.',
+          'Mengembangkan komunikasi dan koordinasi dengan Satpol PP, pemerintah desa/kelurahan, serta instansi terkait dalam mendukung penyelenggaraan pelindungan masyarakat.',
+          'Mendorong partisipasi anggota dalam kegiatan deteksi dini dan pencegahan potensi konflik sosial melalui penyampaian informasi secara berjenjang.'
+        ]
+      },
+      {
+        kode: 'Q', judul: 'BIDANG PENANGGULANGAN BENCANA, KEMANUSIAAN DAN TANGGAP DARURAT',
+        tugas: [
+          'Menyusun program peningkatan kesiapsiagaan dan partisipasi anggota ASLINMAS dalam upaya pengurangan risiko bencana.',
+          'Memfasilitasi pelatihan, penyuluhan, dan simulasi kesiapsiagaan bencana bekerja sama dengan BPBD serta instansi terkait.',
+          'Mendorong partisipasi sukarela anggota dalam kegiatan kemanusiaan, bantuan sosial, dan dukungan penanganan dampak bencana sesuai arahan instansi berwenang.'
+        ]
+      },
+      {
+        kode: 'R', judul: 'BIDANG SOSIAL KEMASYARAKATAN, PEMBINAAN MENTAL, SDM DAN TEKNOLOGI INFORMASI',
+        tugas: [
+          'Mengembangkan program kepedulian sosial, gotong royong, pembinaan mental, moral, kedisiplinan, dan kerohanian anggota ASLINMAS.',
+          'Menyelenggarakan pendidikan, pelatihan, bimbingan teknis, serta pemanfaatan teknologi informasi (Simlinmas & literasi digital) di bidang perlindungan masyarakat.',
+          'Melaksanakan monitoring, evaluasi, dan pelaporan hasil kegiatan kepada pengurus DPC ASLINMAS.'
+        ]
+      }
+    ];
+
+    const DEFAULT_USERS = [
+      { id: 'U01', username: 'admin', password: 'edudigital', role: 'Admin', kabkota: 'PROVINSI JAWA TIMUR' },
+      { id: 'U02', username: 'peserta', password: 'edudigital', role: 'Operator', kabkota: 'KABUPATEN MALANG' },
+      { id: 'U03', username: 'surabaya', password: 'edudigital', role: 'Operator', kabkota: 'KOTA SURABAYA' },
+      { id: 'U04', username: 'sidoarjo', password: 'edudigital', role: 'Operator', kabkota: 'KABUPATEN SIDOARJO' }
+    ];
+
+    function getInitialDummySK(kabkota = 'KABUPATEN MALANG') {
+      return {
+        kabkota: kabkota,
+        nomorSK: '001/SK/DPP-ASLINMAS/XI/2026',
+        tempatSK: 'Jakarta',
+        tanggalSK: '23 November 2026',
+        masaBakti: '2026 – 2031',
+        sertakanUraian: true,
+        ketum: 'Letjen TNI (Purn) Untung Budiharto',
+        sekjen: 'Adhitya Yusma Perdana',
+        pengawas: 'Prof. Dr. Reda Manthovani, S.H., LL.M'
+      };
+    }
+
+    function getInitialDummyPengurus(kabkota = 'KABUPATEN MALANG') {
+      const cap = kabkota.replace(/^KABUPATEN\s+|^KOTA\s+/i, '');
+      return [
+        { id: 'P01', kelompok: 'A', nama: `Bupati ${cap}`, instansi: `Bupati ${cap}`, jabatanAslinmas: 'Ketua' },
+        { id: 'P02', kelompok: 'A', nama: `Ketua DPRD ${kabkota}`, instansi: `Ketua DPRD ${kabkota}`, jabatanAslinmas: 'Anggota' },
+        { id: 'P03', kelompok: 'B', nama: `Komandan Kodim 0818`, instansi: `Komandan Distrik Militer (Dandim)`, jabatanAslinmas: 'Ketua' },
+        { id: 'P04', kelompok: 'B', nama: `Kepala Kepolisian Resor ${cap}`, instansi: `Kapolres ${cap}`, jabatanAslinmas: 'Anggota' },
+        { id: 'P05', kelompok: 'C', nama: `Ketua MUI ${kabkota}`, instansi: `Ketua Majelis Ulama Indonesia (MUI) ${kabkota}`, jabatanAslinmas: 'Ketua' },
+        { id: 'P06', kelompok: 'C', nama: `Ketua TP PKK ${kabkota}`, instansi: `Ketua Tim Penggerak PKK ${kabkota}`, jabatanAslinmas: 'Anggota' },
+        { id: 'P07', kelompok: 'D', nama: `Wakil Bupati ${cap}`, instansi: `Wakil Bupati ${cap}`, jabatanAslinmas: 'Ketua' },
+        { id: 'P08', kelompok: 'E', nama: `Kepala Kejaksaan Negeri ${kabkota}`, instansi: `Kepala Kejaksaan Negeri ${kabkota}`, jabatanAslinmas: 'Ketua' },
+        { id: 'P09', kelompok: 'E', nama: `Inspektur Daerah ${kabkota}`, instansi: `Inspektur Daerah ${kabkota}`, jabatanAslinmas: 'Anggota' },
+        { id: 'P10', kelompok: 'F', nama: `Sekretaris Daerah ${kabkota}`, instansi: `Sekretaris Daerah ${kabkota}`, jabatanAslinmas: 'Ketua' },
+        { id: 'P11', kelompok: 'F', nama: `Kepala Bakesbangpol ${kabkota}`, instansi: `Kepala Badan Kesatuan Bangsa dan Politik ${kabkota}`, jabatanAslinmas: 'Wakil Ketua I' },
+        { id: 'P12', kelompok: 'F', nama: `Ketua DPC ABPEDNAS ${kabkota}`, instansi: `Ketua DPC ABPEDNAS ${kabkota}`, jabatanAslinmas: 'Wakil Ketua II' },
+        { id: 'P13', kelompok: 'F', nama: `Kasi Intelijen Kejaksaan Negeri`, instansi: `Kepala Seksi Intelijen Kejaksaan Negeri ${kabkota}`, jabatanAslinmas: 'Wakil Ketua III' },
+        { id: 'P14', kelompok: 'G', nama: `Kepala Satpol PP ${kabkota}`, instansi: `Kepala Satuan Polisi Pamong Praja ${kabkota}`, jabatanAslinmas: 'Sekretaris (Ketua Harian)' },
+        { id: 'P15', kelompok: 'G', nama: `Sekretaris Bakesbangpol ${kabkota}`, instansi: `Sekretaris Badan Kesatuan Bangsa dan Politik ${kabkota}`, jabatanAslinmas: 'Wakil Sekretaris I' },
+        { id: 'P16', kelompok: 'H', nama: `Sekretaris Satpol PP ${kabkota}`, instansi: `Sekretaris Satuan Polisi Pamong Praja ${kabkota}`, jabatanAslinmas: 'Bendahara' },
+        { id: 'P17', kelompok: 'H', nama: `Kasubag Umum Bakesbangpol`, instansi: `Kasubag Umum dan Kepegawaian Bakesbangpol`, jabatanAslinmas: 'Wakil Bendahara I' },
+        { id: 'P18', kelompok: 'I', nama: `Kepala BKPSDM ${kabkota}`, instansi: `Kepala Badan Kepegawaian dan Pengembangan SDM`, jabatanAslinmas: 'Ketua' },
+        { id: 'P19', kelompok: 'J', nama: `Kasat Binmas Polres ${cap}`, instansi: `Kepala Satuan Pembinaan Masyarakat Polres ${cap}`, jabatanAslinmas: 'Ketua' },
+        { id: 'P20', kelompok: 'K', nama: `Ketua KADIN ${kabkota}`, instansi: `Ketua Kamar Dagang dan Industri (KADIN) ${kabkota}`, jabatanAslinmas: 'Ketua' },
+        { id: 'P21', kelompok: 'L', nama: `Ketua KONI ${kabkota}`, instansi: `Ketua Komite Olahraga Nasional Indonesia (KONI)`, jabatanAslinmas: 'Ketua' },
+        { id: 'P22', kelompok: 'M', nama: `Kepala Dinas PMD ${kabkota}`, instansi: `Kepala Dinas Pemberdayaan Masyarakat dan Desa`, jabatanAslinmas: 'Ketua' },
+        { id: 'P23', kelompok: 'N', nama: `Kepala Bagian Hukum Setda`, instansi: `Kepala Bagian Hukum Sekretariat Daerah ${kabkota}`, jabatanAslinmas: 'Ketua' },
+        { id: 'P24', kelompok: 'O', nama: `Kabid Linmas Satpol PP`, instansi: `Kepala Bidang Pelindungan Masyarakat Satpol PP`, jabatanAslinmas: 'Ketua' },
+        { id: 'P25', kelompok: 'P', nama: `Kepala Pelaksana BPBD ${kabkota}`, instansi: `Kepala Pelaksana Badan Penanggulangan Bencana Daerah`, jabatanAslinmas: 'Ketua' },
+        { id: 'P26', kelompok: 'Q', nama: `Kepala Dinas Sosial ${kabkota}`, instansi: `Kepala Dinas Sosial ${kabkota}`, jabatanAslinmas: 'Ketua' },
+        { id: 'P27', kelompok: 'R', nama: `Kepala Dinas Kominfo ${kabkota}`, instansi: `Kepala Dinas Komunikasi dan Informatika ${kabkota}`, jabatanAslinmas: 'Ketua' }
+      ];
+    }
+
+    let appState = {
+      currentUser: null,
+      users: [],
+      dokumenSK: getInitialDummySK(),
+      pengurusList: []
+    };
+
+    // =========================================================================
+    // 4. INISIALISASI PWA
+    // =========================================================================
+    let deferredPrompt = null;
+
+    function initPWA() {
+      try {
+        const svgEncoded = encodeURIComponent(ASLINMAS_LOGO_SVG.trim());
+        const iconDataUri = `data:image/svg+xml;utf8,${svgEncoded}`;
+
+        const manifestObj = {
+          name: "E-SK DPC ASLINMAS Kabupaten/Kota",
+          short_name: "SK ASLINMAS",
+          description: "Sistem Penyusunan & Generator PDF SK Pengurus DPC ASLINMAS Masa Bakti 2026–2031",
+          start_url: window.location.href,
+          display: "standalone",
+          background_color: "#ffffff",
+          theme_color: "#8B1E1E",
+          orientation: "portrait-primary",
+          icons: [
+            { src: iconDataUri, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+            { src: iconDataUri, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+          ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        document.getElementById('pwa-manifest').setAttribute('href', manifestUrl);
+
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+          const swCode = `
+            self.addEventListener('install', () => self.skipWaiting());
+            self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+            self.addEventListener('fetch', (e) => {
+              if (e.request.method !== 'GET') return;
+              e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+            });
+          `;
+          const swBlob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(swBlob);
+          navigator.serviceWorker.register(swUrl).catch(() => {});
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          if (!localStorage.getItem('pwa_banner_dismissed')) {
+            document.getElementById('pwa-install-banner').classList.remove('hidden');
+          }
+        });
+      } catch (err) {
+        console.warn('PWA init warning:', err);
+      }
+    }
+
+    async function triggerPwaInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          showToast('Aplikasi E-SK ASLINMAS sedang dipasang...', 'success');
+        }
+        deferredPrompt = null;
+        document.getElementById('pwa-install-banner').classList.add('hidden');
+      } else {
+        document.getElementById('pwa-install-banner').classList.add('hidden');
+        openModal('modal-pwa-help');
+      }
+    }
+
+    function dismissPwaBanner() {
+      document.getElementById('pwa-install-banner').classList.add('hidden');
+      localStorage.setItem('pwa_banner_dismissed', 'true');
+    }
+
+    // =========================================================================
+    // 5. SISTEM NOTIFIKASI (TOAST) & MODAL HELPER
+    // =========================================================================
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-800 text-white border-emerald-600',
+        error: 'bg-red-800 text-white border-red-600',
+        warning: 'bg-amber-700 text-white border-amber-500',
+        info: 'bg-slate-800 text-white border-slate-600'
+      };
+      const icons = {
+        success: 'check-circle',
+        error: 'alert-circle',
+        warning: 'alert-triangle',
+        info: 'info'
+      };
+
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-xs sm:text-sm font-medium transition-all transform translate-y-0 ${colors[type] || colors.info}`;
+      toast.innerHTML = `
+        <i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0"></i>
+        <span class="flex-1">${message}</span>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // =========================================================================
+    // 6. AUTENTIKASI LOGIN & SESSION MANAGEMENT
+    // =========================================================================
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('login-password');
+      const icon = document.getElementById('eye-icon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        pwd.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+      const btn = document.getElementById('btn-login-submit');
+
+      if (!username || !password) {
+        showToast('Username dan password wajib diisi.', 'warning');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menghubungkan ke Server...</span>`;
+      lucide.createIcons();
+
+      if (IS_PREVIEW) {
+        setTimeout(() => {
+          const savedUsers = JSON.parse(localStorage.getItem('aslinmas_users') || 'null') || DEFAULT_USERS;
+          appState.users = savedUsers;
+
+          const found = savedUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke Sistem</span>`;
+          lucide.createIcons();
+
+          if (found) {
+            appState.currentUser = found;
+            localStorage.setItem('aslinmas_session', JSON.stringify(found));
+            loadLocalDataForKabKota(found.kabkota);
+            enterApp();
+            showToast(`Selamat datang, ${found.kabkota}!`, 'success');
+          } else {
+            showToast('Username atau kata sandi salah!', 'error');
+          }
+        }, 400);
+      } else {
+        try {
+          const res = await callGasApi('loginUser', { username, password });
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke Sistem</span>`;
+          lucide.createIcons();
+
+          if (res && res.success) {
+            appState.currentUser = res.user;
+            appState.dokumenSK = res.dokumenSK || getInitialDummySK(res.user.kabkota);
+            appState.pengurusList = (res.pengurusList && res.pengurusList.length > 0)
+              ? res.pengurusList
+              : getInitialDummyPengurus(res.user.kabkota);
+            appState.users = res.users || [];
+            localStorage.setItem('aslinmas_session', JSON.stringify(res.user));
+            saveToLocalStorage();
+            enterApp();
+            showToast(`Login berhasil: ${res.user.kabkota}`, 'success');
+          } else {
+            showToast(res?.message || 'Login gagal. Periksa username & password.', 'error');
+          }
+        } catch (err) {
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke Sistem</span>`;
+          lucide.createIcons();
+          showToast('Gagal terhubung ke GAS: ' + err.message, 'error');
+        }
+      }
+    }
+
+    function loadLocalDataForKabKota(kabkota) {
+      const storageKey = `aslinmas_data_${kabkota.replace(/\s+/g, '_')}`;
+      const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+      if (saved) {
+        appState.dokumenSK = saved.dokumenSK;
+        appState.pengurusList = saved.pengurusList;
+      } else {
+        appState.dokumenSK = getInitialDummySK(kabkota);
+        appState.pengurusList = getInitialDummyPengurus(kabkota);
+        saveToLocalStorage();
+      }
+    }
+
+    function saveToLocalStorage() {
+      if (!appState.currentUser) return;
+      const kabkota = appState.dokumenSK.kabkota || appState.currentUser.kabkota;
+      const storageKey = `aslinmas_data_${kabkota.replace(/\s+/g, '_')}`;
+      localStorage.setItem(storageKey, JSON.stringify({
+        dokumenSK: appState.dokumenSK,
+        pengurusList: appState.pengurusList
+      }));
+    }
+
+    function handleLogout() {
+      appState.currentUser = null;
+      localStorage.removeItem('aslinmas_session');
+      document.getElementById('app-view').classList.add('hidden');
+      document.getElementById('login-view').classList.remove('hidden');
+      showToast('Anda telah keluar dari sistem.', 'info');
+    }
+
+    function enterApp() {
+      document.getElementById('login-view').classList.add('hidden');
+      document.getElementById('app-view').classList.remove('hidden');
+
+      const user = appState.currentUser;
+      document.getElementById('user-kabkota-desktop').textContent = user.kabkota;
+      document.getElementById('user-role-desktop').textContent = user.role === 'Admin' ? 'Admin Provinsi Jatim' : 'Operator DPC Kab/Kota';
+      document.getElementById('user-kabkota-mobile').textContent = user.kabkota;
+      document.getElementById('user-avatar-desktop').textContent = user.role === 'Admin' ? 'AD' : 'OP';
+
+      document.getElementById('dash-status-mode').textContent = IS_PREVIEW
+        ? 'Mode Preview (Penyimpanan Lokal)'
+        : 'Terhubung Google Sheets API';
+
+      if (user.role === 'Admin') {
+        document.getElementById('nav-admin-desktop').classList.remove('hidden');
+        document.getElementById('nav-admin-mobile').classList.remove('hidden');
+        renderAdminUsersTable();
+      } else {
+        document.getElementById('nav-admin-desktop').classList.add('hidden');
+        document.getElementById('nav-admin-mobile').classList.add('hidden');
+      }
+
+      populateDropdowns();
+      populateIdentitasForm();
+      refreshAllViews();
+      switchTab('dashboard');
+    }
+
+    // =========================================================================
+    // 7. NAVIGASI TAB & PEMBARUAN UI
+    // =========================================================================
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(`tab-${tabName}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.dataset.nav === tabName) {
+          btn.classList.add('bg-white/15', 'text-white', 'font-semibold');
+          btn.classList.remove('text-red-100', 'font-medium');
+        } else {
+          btn.classList.remove('bg-white/15', 'text-white', 'font-semibold');
+          btn.classList.add('text-red-100', 'font-medium');
+        }
+      });
+
+      document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
+        if (btn.dataset.nav === tabName) {
+          btn.classList.add('text-patriot-800', 'font-bold');
+          btn.classList.remove('text-slate-500', 'font-medium');
+        } else {
+          btn.classList.remove('text-patriot-800', 'font-bold');
+          btn.classList.add('text-slate-500', 'font-medium');
+        }
+      });
+
+      if (tabName === 'preview') {
+        renderOfficialSKDocument();
+      } else if (tabName === 'dashboard') {
+        renderDashboardStats();
+      } else if (tabName === 'pengurus') {
+        renderPengurusList();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      lucide.createIcons();
+    }
+
+    function refreshAllViews() {
+      renderDashboardStats();
+      renderPengurusList();
+      renderOfficialSKDocument();
+    }
+
+    function populateDropdowns() {
+      const filterSelect = document.getElementById('filter-kelompok');
+      const modalSelect = document.getElementById('modal-kelompok');
+
+      filterSelect.innerHTML = `<option value="ALL">Tampilkan Semua Struktur (A s.d. R)</option>`;
+      modalSelect.innerHTML = '';
+
+      STRUKTUR_KELOMPOK.forEach(item => {
+        const label = `${item.kode}. ${item.nama}`;
+        filterSelect.innerHTML += `<option value="${item.kode}">${label}</option>`;
+        modalSelect.innerHTML += `<option value="${item.kode}">${label}</option>`;
+      });
+    }
+
+    // =========================================================================
+    // 8. TAB 1: DASHBOARD & STATISTIK
+    // =========================================================================
+    function renderDashboardStats() {
+      const sk = appState.dokumenSK;
+      const list = appState.pengurusList;
+
+      document.getElementById('dash-title-kabkota').textContent = `DPC ASLINMAS ${sk.kabkota}`;
+      document.getElementById('stat-total-pengurus').textContent = list.length;
+      document.getElementById('badge-count-pengurus').textContent = list.length;
+      document.getElementById('stat-nomor-sk').textContent = sk.nomorSK;
+      document.getElementById('stat-tanggal-sk').textContent = `${sk.tempatSK}, ${sk.tanggalSK}`;
+      document.getElementById('stat-masa-bakti').textContent = sk.masaBakti;
+
+      const filledGroups = new Set(list.map(p => p.kelompok)).size;
+      document.getElementById('stat-kelompok-terisi').textContent = filledGroups;
+
+      const grid = document.getElementById('dashboard-group-grid');
+      grid.innerHTML = STRUKTUR_KELOMPOK.map(grp => {
+        const count = list.filter(p => p.kelompok === grp.kode).length;
+        const isFilled = count > 0;
+        return `
+          <div onclick="jumpToGroup('${grp.kode}')"
+            class="p-3.5 rounded-xl border ${isFilled ? 'border-slate-200 bg-white hover:border-patriot-300' : 'border-dashed border-slate-300 bg-slate-50/60 hover:border-amber-400'} transition cursor-pointer flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <span class="inline-block text-[10px] font-extrabold px-2 py-0.5 rounded bg-patriot-50 text-patriot-800 mb-1">
+                KELOMPOK ${grp.kode}
+              </span>
+              <p class="text-xs font-bold text-slate-800 line-clamp-1" title="${grp.nama}">${grp.nama}</p>
+            </div>
+            <span class="shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold ${isFilled ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-200/70 text-slate-500'}">
+              ${count} org
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function jumpToGroup(kode) {
+      switchTab('pengurus');
+      document.getElementById('filter-kelompok').value = kode;
+      renderPengurusList();
+    }
+
+    function resetToDefaultTemplate() {
+      const kabkota = appState.dokumenSK.kabkota || 'KABUPATEN MALANG';
+      appState.pengurusList = getInitialDummyPengurus(kabkota);
+      saveToLocalStorage();
+      refreshAllViews();
+      showToast('Contoh draf pengurus standar berhasil dimuat ulang.', 'success');
+    }
+
+    // =========================================================================
+    // 9. TAB 2: IDENTITAS & KOP SK
+    // =========================================================================
+    function populateIdentitasForm() {
+      const sk = appState.dokumenSK;
+      document.getElementById('input-kabkota').value = sk.kabkota;
+      document.getElementById('input-nomor-sk').value = sk.nomorSK;
+      document.getElementById('input-tempat-sk').value = sk.tempatSK;
+      document.getElementById('input-tanggal-sk').value = sk.tanggalSK;
+      document.getElementById('input-masa-bakti').value = sk.masaBakti;
+      document.getElementById('input-sertakan-uraian').checked = sk.sertakanUraian !== false;
+      document.getElementById('input-ketum').value = sk.ketum;
+      document.getElementById('input-sekjen').value = sk.sekjen;
+      document.getElementById('input-pengawas').value = sk.pengawas;
+    }
+
+    async function saveIdentitasSK(event) {
+      event.preventDefault();
+      appState.dokumenSK = {
+        kabkota: document.getElementById('input-kabkota').value.trim().toUpperCase(),
+        nomorSK: document.getElementById('input-nomor-sk').value.trim(),
+        tempatSK: document.getElementById('input-tempat-sk').value.trim(),
+        tanggalSK: document.getElementById('input-tanggal-sk').value.trim(),
+        masaBakti: document.getElementById('input-masa-bakti').value.trim(),
+        sertakanUraian: document.getElementById('input-sertakan-uraian').checked,
+        ketum: document.getElementById('input-ketum').value.trim(),
+        sekjen: document.getElementById('input-sekjen').value.trim(),
+        pengawas: document.getElementById('input-pengawas').value.trim()
+      };
+
+      saveToLocalStorage();
+      refreshAllViews();
+
+      if (!IS_PREVIEW) {
+        const btn = document.getElementById('btn-save-identitas');
+        btn.disabled = true;
+        try {
+          const res = await callGasApi('saveDokumenSK', { dokumenSK: appState.dokumenSK });
+          if (res && res.success) {
+            showToast('Identitas SK tersimpan ke Google Sheets!', 'success');
+          } else {
+            showToast(res?.message || 'Gagal menyimpan ke server.', 'error');
+          }
+        } catch (err) {
+          showToast('Gagal simpan ke server: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      } else {
+        showToast('Identitas SK berhasil diperbarui!', 'success');
+      }
+    }
+
+    // =========================================================================
+    // 10. TAB 3: CRUD & PENGURUTAN SUSUNAN PENGURUS
+    // =========================================================================
+    function renderPengurusList() {
+      const container = document.getElementById('pengurus-list-container');
+      const filterKode = document.getElementById('filter-kelompok').value;
+      const keyword = document.getElementById('search-pengurus').value.trim().toLowerCase();
+
+      const groupsToShow = filterKode === 'ALL'
+        ? STRUKTUR_KELOMPOK
+        : STRUKTUR_KELOMPOK.filter(g => g.kode === filterKode);
+
+      container.innerHTML = groupsToShow.map(grp => {
+        let members = appState.pengurusList.filter(p => p.kelompok === grp.kode);
+        if (keyword) {
+          members = members.filter(p =>
+            p.nama.toLowerCase().includes(keyword) ||
+            p.instansi.toLowerCase().includes(keyword) ||
+            p.jabatanAslinmas.toLowerCase().includes(keyword)
+          );
+        }
+
+        const rowsHtml = members.length === 0
+          ? `<div class="p-5 text-center text-xs text-slate-400 italic">Belum ada pengurus pada kelompok ini. Klik "+ Tambah di ${grp.kode}" untuk mengisi.</div>`
+          : `<div class="divide-y divide-slate-100">
+              ${members.map((m, idx) => `
+                <div class="p-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 transition">
+                  <div class="flex items-start gap-3 min-w-0">
+                    <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      ${idx + 1}
+                    </span>
+                    <div class="min-w-0">
+                      <p class="text-sm font-bold text-slate-900 break-words">${escapeHtml(m.nama)}</p>
+                      <p class="text-xs text-slate-600 mt-0.5 break-words">${escapeHtml(m.instansi)}</p>
+                      <span class="inline-block mt-1 px-2.5 py-0.5 rounded-md bg-patriot-50 text-patriot-800 text-[11px] font-bold">
+                        ${escapeHtml(m.jabatanAslinmas)}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                    <button onclick="movePengurus('${m.id}', -1)" title="Geser Naik" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer">
+                      <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button onclick="movePengurus('${m.id}', 1)" title="Geser Turun" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer">
+                      <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button onclick="openPengurusModal('${m.id}')" title="Edit Pengurus" class="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 transition cursor-pointer">
+                      <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button onclick="deletePengurus('${m.id}')" title="Hapus Pengurus" class="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition cursor-pointer">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>`;
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="px-4 sm:px-5 py-3.5 bg-slate-50 border-b border-slate-200/70 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-7 h-7 rounded-lg bg-patriot-800 text-white font-extrabold text-xs flex items-center justify-center shrink-0">
+                  ${grp.kode}
+                </span>
+                <h3 class="font-bold text-xs sm:text-sm text-slate-800 leading-snug">${grp.nama}</h3>
+              </div>
+              <button onclick="openPengurusModal(null, '${grp.kode}')"
+                class="px-3 py-1.5 bg-white hover:bg-patriot-50 text-patriot-800 border border-patriot-200 rounded-lg text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Tambah di ${grp.kode}</span>
+              </button>
+            </div>
+            ${rowsHtml}
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function openPengurusModal(editId = null, defaultKelompok = 'A') {
+      const form = document.getElementById('form-pengurus');
+      form.reset();
+      document.getElementById('edit-pengurus-id').value = editId || '';
+
+      if (editId) {
+        const item = appState.pengurusList.find(p => p.id === editId);
+        if (item) {
+          document.getElementById('modal-pengurus-title').textContent = 'Edit Data Pengurus';
+          document.getElementById('modal-kelompok').value = item.kelompok;
+          document.getElementById('modal-nama').value = item.nama;
+          document.getElementById('modal-instansi').value = item.instansi;
+          document.getElementById('modal-jabatan-aslinmas').value = item.jabatanAslinmas;
+        }
+      } else {
+        document.getElementById('modal-pengurus-title').textContent = 'Tambah Anggota Pengurus';
+        const currentFilter = document.getElementById('filter-kelompok').value;
+        document.getElementById('modal-kelompok').value = defaultKelompok || (currentFilter !== 'ALL' ? currentFilter : 'A');
+      }
+
+      openModal('modal-pengurus');
+    }
+
+    function savePengurusItem(event) {
+      event.preventDefault();
+      const editId = document.getElementById('edit-pengurus-id').value;
+      const kelompok = document.getElementById('modal-kelompok').value;
+      const nama = document.getElementById('modal-nama').value.trim();
+      const instansi = document.getElementById('modal-instansi').value.trim();
+      const jabatanAslinmas = document.getElementById('modal-jabatan-aslinmas').value.trim();
+
+      if (editId) {
+        const idx = appState.pengurusList.findIndex(p => p.id === editId);
+        if (idx !== -1) {
+          appState.pengurusList[idx] = { id: editId, kelompok, nama, instansi, jabatanAslinmas };
+          showToast('Data pengurus berhasil diperbarui.', 'success');
+        }
+      } else {
+        const newItem = {
+          id: 'P_' + Date.now(),
+          kelompok,
+          nama,
+          instansi,
+          jabatanAslinmas
+        };
+        appState.pengurusList.push(newItem);
+        showToast('Pengurus baru berhasil ditambahkan.', 'success');
+      }
+
+      saveToLocalStorage();
+      closeModal('modal-pengurus');
+      refreshAllViews();
+    }
+
+    function deletePengurus(id) {
+      appState.pengurusList = appState.pengurusList.filter(p => p.id !== id);
+      saveToLocalStorage();
+      refreshAllViews();
+      showToast('Baris pengurus dihapus.', 'info');
+    }
+
+    function movePengurus(id, direction) {
+      const target = appState.pengurusList.find(p => p.id === id);
+      if (!target) return;
+
+      const sameGroupIndices = [];
+      appState.pengurusList.forEach((p, idx) => {
+        if (p.kelompok === target.kelompok) sameGroupIndices.push(idx);
+      });
+
+      const posInGroup = sameGroupIndices.findIndex(idx => appState.pengurusList[idx].id === id);
+      const swapPos = posInGroup + direction;
+      if (swapPos < 0 || swapPos >= sameGroupIndices.length) return;
+
+      const idxA = sameGroupIndices[posInGroup];
+      const idxB = sameGroupIndices[swapPos];
+      const temp = appState.pengurusList[idxA];
+      appState.pengurusList[idxA] = appState.pengurusList[idxB];
+      appState.pengurusList[idxB] = temp;
+
+      saveToLocalStorage();
+      renderPengurusList();
+    }
+
+    async function syncAllToBackend() {
+      saveToLocalStorage();
+      if (IS_PREVIEW) {
+        showToast('Seluruh perubahan tersimpan aman di penyimpanan lokal browser!', 'success');
+        return;
+      }
+
+      const btn = document.getElementById('btn-sync-all');
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menyimpan...</span>`;
+      lucide.createIcons();
+
+      try {
+        const res = await callGasApi('saveAllSKData', {
+          dokumenSK: appState.dokumenSK,
+          pengurusList: appState.pengurusList
+        });
+        if (res && res.success) {
+          showToast('Semua data pengurus berhasil disinkronkan ke Google Sheets!', 'success');
+        } else {
+          showToast(res?.message || 'Gagal menyinkronkan data.', 'error');
+        }
+      } catch (err) {
+        showToast('Gagal menyimpan ke server: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="cloud-upload" class="w-4 h-4"></i><span>Simpan Semua</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    // =========================================================================
+    // 11. TAB 4: RENDER DOKUMEN SK RESMI & DOWNLOAD PDF
+    // =========================================================================
+    function buildKopSuratHtml() {
+      return `
+        <div style="display:flex; align-items:center; border-bottom: 3px double #000; padding-bottom: 8px; margin-bottom: 14px; gap: 12px;">
+          <div style="width: 68px; height: 68px; flex-shrink: 0;">
+            ${ASLINMAS_LOGO_SVG}
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="font-family: Arial, sans-serif; font-weight: 900; font-size: 16pt; color: #8B1E1E; letter-spacing: 0.5px; line-height: 1.1;">
+              ASLINMAS INDONESIA
+            </div>
+            <div style="font-family: Arial, sans-serif; font-weight: 700; font-size: 10.5pt; color: #000000; margin-top: 2px;">
+              ASOSIASI SATUAN PELINDUNGAN MASYARAKAT
+            </div>
+            <div style="font-family: Arial, sans-serif; font-weight: 700; font-size: 8.5pt; color: #B45309; letter-spacing: 1px;">
+              PATRIOT PELINDUNG MASYARAKAT
+            </div>
+            <div style="font-family: Arial, sans-serif; font-size: 8pt; color: #333333; margin-top: 3px;">
+              Shima Building II Jl. Buncit Raya No. 63, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12740 &bull; www.aslinmas.id
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildSignatureBlockHtml(sk) {
+      return `
+        <div class="avoid-break" style="margin-top: 22px; font-size: 11pt;">
+          <div style="width: 52%; margin-left: auto; text-align: left; margin-bottom: 14px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="width: 110px;">Ditetapkan di</td>
+                <td style="width: 12px;">:</td>
+                <td><strong>${escapeHtml(sk.tempatSK)}</strong></td>
+              </tr>
+              <tr>
+                <td>Pada tanggal</td>
+                <td>:</td>
+                <td><strong>${escapeHtml(sk.tanggalSK)}</strong></td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="text-align: center; font-weight: bold; margin-bottom: 10px;">
+            DEWAN PIMPINAN PUSAT ASLINMAS INDONESIA,
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; text-align: center;">
+            <tr>
+              <td style="width: 50%; vertical-align: top; padding: 4px;">
+                <div style="height: 58px;"></div>
+                <div style="font-weight: bold; text-decoration: underline;">${escapeHtml(sk.ketum)}</div>
+                <div>Ketua Umum</div>
+              </td>
+              <td style="width: 50%; vertical-align: top; padding: 4px;">
+                <div style="height: 58px;"></div>
+                <div style="font-weight: bold; text-decoration: underline;">${escapeHtml(sk.sekjen)}</div>
+                <div>Sekretaris Jenderal</div>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding-top: 14px; text-align: center;">
+                <div>Mengetahui,</div>
+                <div style="height: 54px;"></div>
+                <div style="font-weight: bold; text-decoration: underline;">${escapeHtml(sk.pengawas)}</div>
+                <div>Ketua Dewan Pengawas</div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderOfficialSKDocument() {
+      const sk = appState.dokumenSK;
+      const list = appState.pengurusList;
+      const container = document.getElementById('sk-printable-area');
+
+      let html = `
+        <div>
+          ${buildKopSuratHtml()}
+
+          <div style="text-align: center; margin-bottom: 14px;">
+            <div style="font-weight: bold; font-size: 12.5pt; text-decoration: underline;">SURAT KEPUTUSAN</div>
+            <div style="font-weight: bold; font-size: 11pt;">Nomor : ${escapeHtml(sk.nomorSK)}</div>
+            <div style="font-weight: bold; font-size: 11pt; margin-top: 8px;">TENTANG</div>
+            <div style="font-weight: bold; font-size: 11.5pt; margin-top: 4px; text-transform: uppercase;">
+              PENGESAHAN SUSUNAN PENGURUS DEWAN PIMPINAN CABANG (DPC) ASLINMAS<br/>
+              ${escapeHtml(sk.kabkota)} MASA BAKTI ${escapeHtml(sk.masaBakti)}
+            </div>
+            <div style="font-weight: bold; font-size: 11pt; margin-top: 10px;">
+              KETUA UMUM DEWAN PIMPINAN PUSAT<br/>
+              ASOSIASI SATUAN PELINDUNGAN MASYARAKAT,
+            </div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; text-align: justify; font-size: 11pt;">
+            <tr>
+              <td style="width: 105px; vertical-align: top; font-weight: bold; padding-bottom: 8px;">Menimbang</td>
+              <td style="width: 14px; vertical-align: top; font-weight: bold;">:</td>
+              <td style="vertical-align: top; padding-bottom: 8px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="width: 20px; vertical-align: top;">a.</td>
+                    <td style="padding-bottom: 4px;">bahwa dalam rangka pelaksanaan program kerja organisasi serta penguatan kelembagaan, maka perlu ditetapkan susunan pengurus Dewan Pimpinan Cabang (DPC) ASLINMAS ${escapeHtml(sk.kabkota)} masa bakti ${escapeHtml(sk.masaBakti)}; dan</td>
+                  </tr>
+                  <tr>
+                    <td style="vertical-align: top;">b.</td>
+                    <td>bahwa berdasarkan pertimbangan sebagaimana dimaksud pada huruf a, perlu menetapkan Surat Keputusan Dewan Pimpinan Pusat ASLINMAS tentang Pengesahan Susunan Pengurus Dewan Pimpinan Cabang (DPC) ASLINMAS ${escapeHtml(sk.kabkota)} Masa Bakti ${escapeHtml(sk.masaBakti)}.</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="vertical-align: top; font-weight: bold; padding-bottom: 8px;">Mengingat</td>
+              <td style="vertical-align: top; font-weight: bold;">:</td>
+              <td style="vertical-align: top; padding-bottom: 8px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="width: 20px; vertical-align: top;">1.</td>
+                    <td style="padding-bottom: 3px;">Undang-Undang Nomor 23 Tahun 2014 tentang Pemerintahan Daerah sebagaimana telah beberapa kali diubah terakhir dengan Undang-Undang Nomor 6 Tahun 2023 tentang Penetapan Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja menjadi Undang-Undang;</td>
+                  </tr>
+                  <tr>
+                    <td style="vertical-align: top;">2.</td>
+                    <td style="padding-bottom: 3px;">Peraturan Pemerintah Nomor 16 Tahun 2018 tentang Satuan Polisi Pamong Praja, khususnya ketentuan yang berkaitan dengan Satuan Pelindungan Masyarakat;</td>
+                  </tr>
+                  <tr>
+                    <td style="vertical-align: top;">3.</td>
+                    <td style="padding-bottom: 3px;">Peraturan Menteri Dalam Negeri Nomor 26 Tahun 2020 tentang Penyelenggaraan Ketertiban Umum dan Ketenteraman Masyarakat serta Pelindungan Masyarakat;</td>
+                  </tr>
+                  <tr>
+                    <td style="vertical-align: top;">4.</td>
+                    <td style="padding-bottom: 3px;">Anggaran Dasar dan Anggaran Rumah Tangga (AD/ART) ASLINMAS; dan</td>
+                  </tr>
+                  <tr>
+                    <td style="vertical-align: top;">5.</td>
+                    <td>Hasil Musyawarah Nasional (MUNAS) pertama ASLINMAS Indonesia Tahun 2026.</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <div style="text-align: center; font-weight: bold; font-size: 11.5pt; margin: 10px 0;">MEMUTUSKAN:</div>
+
+          <table style="width: 100%; border-collapse: collapse; text-align: justify; font-size: 11pt;">
+            <tr>
+              <td style="width: 105px; vertical-align: top; font-weight: bold; padding-bottom: 6px;">Menetapkan</td>
+              <td style="width: 14px; vertical-align: top; font-weight: bold;">:</td>
+              <td style="vertical-align: top; padding-bottom: 6px; font-weight: bold;">
+                KEPUTUSAN DEWAN PIMPINAN PUSAT ASLINMAS TENTANG PENGESAHAN SUSUNAN PENGURUS DEWAN PIMPINAN CABANG (DPC) ASLINMAS ${escapeHtml(sk.kabkota)} MASA BAKTI ${escapeHtml(sk.masaBakti)}.
+              </td>
+            </tr>
+            <tr>
+              <td style="vertical-align: top; font-weight: bold; padding-bottom: 6px;">KESATU</td>
+              <td style="vertical-align: top; font-weight: bold;">:</td>
+              <td style="vertical-align: top; padding-bottom: 6px;">
+                Mengesahkan Susunan Pengurus Dewan Pimpinan Cabang (DPC) ASLINMAS ${escapeHtml(sk.kabkota)} masa bakti ${escapeHtml(sk.masaBakti)} sebagaimana tercantum dalam Lampiran Surat Keputusan ini dan merupakan bagian yang tidak terpisahkan dari Surat Keputusan ini;
+              </td>
+            </tr>
+            <tr>
+              <td style="vertical-align: top; font-weight: bold; padding-bottom: 6px;">KEDUA</td>
+              <td style="vertical-align: top; font-weight: bold;">:</td>
+              <td style="vertical-align: top; padding-bottom: 6px;">
+                Pengurus Dewan Pimpinan Cabang (DPC) ASLINMAS ${escapeHtml(sk.kabkota)} sebagaimana dimaksud pada Diktum KESATU berkewajiban melaksanakan tugas, kewenangan, dan tanggung jawab sesuai dengan ketentuan organisasi;
+              </td>
+            </tr>
+            <tr>
+              <td style="vertical-align: top; font-weight: bold;">KETIGA</td>
+              <td style="vertical-align: top; font-weight: bold;">:</td>
+              <td style="vertical-align: top;">
+                Keputusan ini berlaku sejak tanggal ditetapkan dan apabila terdapat kekeliruan akan diperbaiki sebagaimana mestinya.
+              </td>
+            </tr>
+          </table>
+
+          ${buildSignatureBlockHtml(sk)}
+        </div>
+      `;
+
+      let tableRowsHtml = '';
+      STRUKTUR_KELOMPOK.forEach(grp => {
+        const members = list.filter(p => p.kelompok === grp.kode);
+        if (members.length === 0) return;
+
+        tableRowsHtml += `
+          <tr style="background-color: #e5e7eb; font-weight: bold;">
+            <td style="text-align: center;">${grp.kode}.</td>
+            <td colspan="3">${escapeHtml(grp.nama)}</td>
+          </tr>
+        `;
+
+        members.forEach((m, idx) => {
+          tableRowsHtml += `
+            <tr>
+              <td style="text-align: center;">${idx + 1}.</td>
+              <td>${escapeHtml(m.nama)}</td>
+              <td>${escapeHtml(m.instansi)}</td>
+              <td>${escapeHtml(m.jabatanAslinmas)}</td>
+            </tr>
+          `;
+        });
+      });
+
+      if (!tableRowsHtml) {
+        tableRowsHtml = `
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 16px; font-style: italic;">Belum ada data pengurus yang diinput.</td>
+          </tr>
+        `;
+      }
+
+      html += `
+        <div class="page-break-before" style="padding-top: 8px;">
+          ${buildKopSuratHtml()}
+
+          <div style="margin-bottom: 10px; font-size: 10.5pt;">
+            <table style="border-collapse: collapse;">
+              <tr>
+                <td style="width: 90px; font-weight: bold;">LAMPIRAN I</td>
+                <td style="width: 12px;">:</td>
+                <td style="font-weight: bold;">SURAT KEPUTUSAN DPP ASLINMAS INDONESIA</td>
+              </tr>
+              <tr>
+                <td style="font-weight: bold;">NOMOR</td>
+                <td>:</td>
+                <td>${escapeHtml(sk.nomorSK)}</td>
+              </tr>
+              <tr>
+                <td style="font-weight: bold;">TANGGAL</td>
+                <td>:</td>
+                <td>${escapeHtml(sk.tanggalSK)}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="text-align: center; font-weight: bold; font-size: 11pt; margin: 10px 0 12px 0; text-transform: uppercase;">
+            SUSUNAN PENGURUS DEWAN PIMPINAN CABANG (DPC)<br/>
+            ASOSIASI SATUAN PELINDUNGAN MASYARAKAT (ASLINMAS)<br/>
+            ${escapeHtml(sk.kabkota)} MASA BAKTI ${escapeHtml(sk.masaBakti)}
+          </div>
+
+          <table class="sk-table">
+            <thead>
+              <tr>
+                <th style="width: 36px;">NO</th>
+                <th style="width: 32%;">NAMA</th>
+                <th style="width: 38%;">JABATAN DALAM INSTANSI / LEMBAGA</th>
+                <th style="width: 22%;">JABATAN DALAM ASLINMAS</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRowsHtml}
+            </tbody>
+          </table>
+
+          ${!sk.sertakanUraian ? buildSignatureBlockHtml(sk) : ''}
+        </div>
+      `;
+
+      if (sk.sertakanUraian) {
+        const uraianHtml = URAIAN_TUGAS_DATA.map(u => `
+          <div class="avoid-break" style="margin-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 10.5pt; margin-bottom: 3px;">${u.kode}. ${u.judul}</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10pt; text-align: justify;">
+              ${u.tugas.map((t, i) => `
+                <tr>
+                  <td style="width: 22px; vertical-align: top;">${i + 1}.</td>
+                  <td style="vertical-align: top; padding-bottom: 2px;">${t}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `).join('');
+
+        html += `
+          <div class="page-break-before" style="padding-top: 8px;">
+            ${buildKopSuratHtml()}
+            <div style="text-align: center; font-weight: bold; font-size: 11pt; margin-bottom: 12px; text-transform: uppercase;">
+              LAMPIRAN II : URAIAN TUGAS PENGURUS DPC ASLINMAS<br/>
+              ${escapeHtml(sk.kabkota)} MASA BAKTI ${escapeHtml(sk.masaBakti)}
+            </div>
+            ${uraianHtml}
+            ${buildSignatureBlockHtml(sk)}
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function downloadPdfDocument() {
+      const btn = document.getElementById('btn-download-pdf');
+      const paperSize = document.getElementById('pdf-paper-size').value;
+      const element = document.getElementById('sk-printable-area');
+      const kabkotaSlug = (appState.dokumenSK.kabkota || 'DPC_ASLINMAS').replace(/[^a-zA-Z0-9]+/g, '_');
+      const fileName = `SK_DPC_ASLINMAS_${kabkotaSlug}_2026_2031.pdf`;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Memproses PDF...</span>`;
+      lucide.createIcons();
+
+      const jsPdfFormat = paperSize === 'f4' ? [215, 330] : 'a4';
+
+      const opt = {
+        margin: [10, 12, 12, 12],
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: jsPdfFormat, orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+
+      html2pdf()
+        .set(opt)
+        .from(element)
+        .save()
+        .then(() => {
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="file-down" class="w-4 h-4"></i><span>Download PDF</span>`;
+          lucide.createIcons();
+          showToast(`File ${fileName} berhasil diunduh!`, 'success');
+        })
+        .catch((err) => {
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="file-down" class="w-4 h-4"></i><span>Download PDF</span>`;
+          lucide.createIcons();
+          showToast('Gagal membuat PDF otomatis. Gunakan tombol Cetak / Print.', 'error');
+          console.error(err);
+        });
+    }
+
+    // =========================================================================
+    // 12. TAB 5: MANAJEMEN AKUN DAERAH (ADMIN)
+    // =========================================================================
+    function renderAdminUsersTable() {
+      const tbody = document.getElementById('admin-users-tbody');
+      tbody.innerHTML = appState.users.map(u => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-3 px-4 font-bold text-slate-900">${escapeHtml(u.kabkota)}</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-700">${escapeHtml(u.username)}</td>
+          <td class="py-3 px-4 font-mono text-xs text-slate-500">${escapeHtml(u.password)}</td>
+          <td class="py-3 px-4">
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${u.role === 'Admin' ? 'bg-amber-100 text-amber-800' : 'bg-patriot-50 text-patriot-800'}">
+              ${escapeHtml(u.role)}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-right space-x-1">
+            <button onclick="openUserModal('${u.id}')" class="p-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100" title="Edit Akun">
+              <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+            </button>
+            ${u.username !== 'admin' ? `
+              <button onclick="deleteUserAccount('${u.id}')" class="p-1.5 rounded-lg bg-red-50 text-red-700 hover:bg-red-100" title="Hapus Akun">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            ` : ''}
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function openUserModal(editId = null) {
+      document.getElementById('form-user').reset();
+      document.getElementById('edit-user-id').value = editId || '';
+      if (editId) {
+        const u = appState.users.find(x => x.id === editId);
+        if (u) {
+          document.getElementById('modal-user-title').textContent = 'Edit Akun Daerah';
+          document.getElementById('user-input-kabkota').value = u.kabkota;
+          document.getElementById('user-input-username').value = u.username;
+          document.getElementById('user-input-password').value = u.password;
+          document.getElementById('user-input-role').value = u.role;
+        }
+      } else {
+        document.getElementById('modal-user-title').textContent = 'Tambah Akun Kabupaten/Kota';
+      }
+      openModal('modal-user');
+    }
+
+    async function saveUserAccount(event) {
+      event.preventDefault();
+      const editId = document.getElementById('edit-user-id').value;
+      const kabkota = document.getElementById('user-input-kabkota').value.trim().toUpperCase();
+      const username = document.getElementById('user-input-username').value.trim();
+      const password = document.getElementById('user-input-password').value.trim();
+      const role = document.getElementById('user-input-role').value;
+
+      if (editId) {
+        const idx = appState.users.findIndex(u => u.id === editId);
+        if (idx !== -1) {
+          appState.users[idx] = { id: editId, kabkota, username, password, role };
+        }
+      } else {
+        appState.users.push({ id: 'U_' + Date.now(), kabkota, username, password, role });
+      }
+
+      localStorage.setItem('aslinmas_users', JSON.stringify(appState.users));
+      renderAdminUsersTable();
+      closeModal('modal-user');
+
+      if (!IS_PREVIEW) {
+        try {
+          await callGasApi('saveUsersList', { users: appState.users });
+          showToast('Akun daerah tersimpan ke Google Sheets.', 'success');
+        } catch (err) {
+          showToast('Gagal menyimpan akun ke server: ' + err.message, 'error');
+        }
+      } else {
+        showToast('Akun daerah berhasil disimpan.', 'success');
+      }
+    }
+
+    async function deleteUserAccount(id) {
+      appState.users = appState.users.filter(u => u.id !== id);
+      localStorage.setItem('aslinmas_users', JSON.stringify(appState.users));
+      renderAdminUsersTable();
+      showToast('Akun berhasil dihapus.', 'info');
+
+      if (!IS_PREVIEW) {
+        try {
+          await callGasApi('saveUsersList', { users: appState.users });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }
+
+    // =========================================================================
+    // 13. UTILITY & ONLOAD BOOTSTRAP
+    // =========================================================================
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      ['login-logo-container', 'sidebar-logo-container', 'mobile-logo-container'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = ASLINMAS_LOGO_SVG;
+      });
+
+      if (IS_PREVIEW) {
+        document.getElementById('preview-badge').classList.remove('hidden');
+      }
+
+      initPWA();
+
+      const savedSession = JSON.parse(localStorage.getItem('aslinmas_session') || 'null');
+      if (savedSession) {
+        appState.users = JSON.parse(localStorage.getItem('aslinmas_users') || 'null') || DEFAULT_USERS;
+        appState.currentUser = savedSession;
+        loadLocalDataForKabKota(savedSession.kabkota);
+        enterApp();
+      }
+
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
