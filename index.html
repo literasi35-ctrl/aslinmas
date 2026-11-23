@@ -1152,7 +1152,7 @@
     }
 
     // =========================================================================
-    // 6. AUTENTIKASI LOGIN & SINKRONISASI LANGSUNG KE GOOGLE SHEETS
+    // 6. AUTENTIKASI LOGIN & SINKRONISASI ANTREAN KE GOOGLE SHEETS
     // =========================================================================
     function togglePasswordVisibility() {
       const pwd = document.getElementById('login-password');
@@ -1191,7 +1191,6 @@
         if (res && res.success) {
           appState.currentUser = res.user;
           appState.dokumenSK = res.dokumenSK || getEmptySK(res.user.kabkota);
-          // Kosong jika di Google Sheet kosong, terisi jika di Google Sheet ada datanya
           appState.pengurusList = Array.isArray(res.pengurusList) ? res.pengurusList : [];
           appState.users = Array.isArray(res.users) ? res.users : [];
 
@@ -1234,18 +1233,35 @@
       }
     }
 
-    async function autoSyncBackground() {
-      try {
-        await callGasApi('saveAllSKData', {
-          dokumenSK: appState.dokumenSK,
-          pengurusList: appState.pengurusList
-        });
-      } catch (err) {
-        showToast('Gagal sinkron otomatis ke Sheets: ' + err.message, 'error');
-      }
+    let autoSyncTimer = null;
+    let isSyncingNow = false;
+
+    function autoSyncBackground() {
+      clearTimeout(autoSyncTimer);
+      autoSyncTimer = setTimeout(async () => {
+        if (isSyncingNow) {
+          autoSyncBackground();
+          return;
+        }
+        isSyncingNow = true;
+        try {
+          const res = await callGasApi('saveAllSKData', {
+            dokumenSK: appState.dokumenSK,
+            pengurusList: appState.pengurusList
+          });
+          if (res && !res.success) {
+            showToast(res.message || 'Gagal sinkron otomatis ke Sheets.', 'error');
+          }
+        } catch (err) {
+          showToast('Gagal sinkron otomatis ke Sheets: ' + err.message, 'error');
+        } finally {
+          isSyncingNow = false;
+        }
+      }, 1500);
     }
 
     function handleLogout() {
+      clearTimeout(autoSyncTimer);
       appState.currentUser = null;
       appState.dokumenSK = getEmptySK();
       appState.pengurusList = [];
@@ -1404,6 +1420,11 @@
 
     async function saveIdentitasSK(event) {
       event.preventDefault();
+      if (isSyncingNow) {
+        showToast('Proses sinkronisasi lain masih berjalan, tunggu sebentar...', 'warning');
+        return;
+      }
+
       appState.dokumenSK = {
         kabkota: document.getElementById('input-kabkota').value.trim().toUpperCase(),
         nomorSK: document.getElementById('input-nomor-sk').value.trim(),
@@ -1420,6 +1441,7 @@
 
       const btn = document.getElementById('btn-save-identitas');
       btn.disabled = true;
+      isSyncingNow = true;
       try {
         const res = await callGasApi('saveDokumenSK', { dokumenSK: appState.dokumenSK });
         if (res && res.success) {
@@ -1430,12 +1452,13 @@
       } catch (err) {
         showToast('Gagal simpan ke server: ' + err.message, 'error');
       } finally {
+        isSyncingNow = false;
         btn.disabled = false;
       }
     }
 
     // =========================================================================
-    // 10. TAB 3: CRUD & PENGURUTAN SUSUNAN PENGURUS (AUTO-SYNC)
+    // 10. TAB 3: CRUD & PENGURUTAN SUSUNAN PENGURUS (AUTO-SYNC ANTREEAN)
     // =========================================================================
     function renderPengurusList() {
       const container = document.getElementById('pengurus-list-container');
@@ -1549,7 +1572,7 @@
         const idx = appState.pengurusList.findIndex(p => p.id === editId);
         if (idx !== -1) {
           appState.pengurusList[idx] = { id: editId, kelompok, nama, instansi, jabatanAslinmas };
-          showToast('Data pengurus diperbarui & dikirim ke Sheet...', 'success');
+          showToast('Data pengurus diperbarui & dijadwalkan sinkron ke Sheet...', 'success');
         }
       } else {
         appState.pengurusList.push({
@@ -1559,7 +1582,7 @@
           instansi,
           jabatanAslinmas
         });
-        showToast('Pengurus ditambahkan & dikirim ke Sheet...', 'success');
+        showToast('Pengurus ditambahkan & dijadwalkan sinkron ke Sheet...', 'success');
       }
 
       closeModal('modal-pengurus');
@@ -1570,7 +1593,7 @@
     function deletePengurus(id) {
       appState.pengurusList = appState.pengurusList.filter(p => p.id !== id);
       refreshAllViews();
-      showToast('Baris dihapus & disinkronkan ke Sheet...', 'info');
+      showToast('Baris dihapus & dijadwalkan sinkron ke Sheet...', 'info');
       autoSyncBackground();
     }
 
@@ -1598,10 +1621,17 @@
     }
 
     async function syncAllToBackend() {
+      clearTimeout(autoSyncTimer);
+      if (isSyncingNow) {
+        showToast('Proses penyimpanan sebelumnya masih berjalan, mohon tunggu...', 'warning');
+        return;
+      }
+
       const btn = document.getElementById('btn-sync-all');
       btn.disabled = true;
       btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menyimpan...</span>`;
       lucide.createIcons();
+      isSyncingNow = true;
 
       try {
         const res = await callGasApi('saveAllSKData', {
@@ -1616,6 +1646,7 @@
       } catch (err) {
         showToast('Gagal menyimpan ke server: ' + err.message, 'error');
       } finally {
+        isSyncingNow = false;
         btn.disabled = false;
         btn.innerHTML = `<i data-lucide="cloud-upload" class="w-4 h-4"></i><span>Simpan Semua</span>`;
         lucide.createIcons();
