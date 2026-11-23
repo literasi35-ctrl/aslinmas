@@ -10,10 +10,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="SK ASLINMAS" />
 
-  <!-- Dynamic PWA Manifest Link (diisi via JS Blob URL) -->
+  <!-- Dynamic PWA Manifest Link -->
   <link id="pwa-manifest" rel="manifest" href="" />
 
-  <!-- Google Fonts: Inter & Times New Roman / Serif untuk Dokumen Resmi -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tinos:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
@@ -52,7 +52,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- html2pdf.js untuk Export PDF langsung -->
+  <!-- html2pdf.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
@@ -131,7 +131,6 @@
   <!-- KONFIGURASI KONEKSI GITHUB PAGES -> GOOGLE APPS SCRIPT WEB APP        -->
   <!-- ===================================================================== -->
   <script>
-    const IS_PREVIEW = false;
     const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwZR1-956jpecw3wveiipmyJS6Gc9_GgJtAp1HilqdXBCdaZ8Rn1lP0T85DDwsvAhHjPg/exec";
 
     async function callGasApi(action, payload = {}) {
@@ -168,7 +167,7 @@
       </div>
       <div class="flex-1 min-w-0">
         <h4 class="font-bold text-sm text-white">Install Aplikasi E-SK ASLINMAS</h4>
-        <p class="text-xs text-red-100 mt-0.5 leading-relaxed">Pasang ke layar utama HP/Laptop untuk akses cepat & simpan draf offline.</p>
+        <p class="text-xs text-red-100 mt-0.5 leading-relaxed">Pasang ke layar utama HP/Laptop untuk akses cepat.</p>
         <div class="flex items-center gap-2 mt-3">
           <button id="btn-pwa-install-trigger" onclick="triggerPwaInstall()" class="px-3.5 py-1.5 bg-emas-500 hover:bg-emas-600 text-white text-xs font-semibold rounded-lg shadow transition cursor-pointer">
             Install Sekarang
@@ -237,14 +236,6 @@
       </div>
 
       <form id="login-form" onsubmit="handleLogin(event)" class="p-6 sm:p-8 space-y-4">
-        <div id="preview-badge" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2.5">
-          <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
-          <div>
-            <p class="font-bold">Mode Preview Aktif (IS_PREVIEW = true)</p>
-            <p class="mt-0.5">Menggunakan penyimpanan lokal browser.</p>
-          </div>
-        </div>
-
         <div>
           <label for="login-username" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Username / Kode Daerah</label>
           <div class="relative">
@@ -304,7 +295,7 @@
             OP
           </div>
           <div class="min-w-0 flex-1">
-            <p class="text-xs font-bold text-white truncate" id="user-kabkota-desktop">KABUPATEN MALANG</p>
+            <p class="text-xs font-bold text-white truncate" id="user-kabkota-desktop">-</p>
             <p class="text-[11px] text-red-200 truncate" id="user-role-desktop">Operator DPC</p>
           </div>
         </div>
@@ -335,6 +326,10 @@
       </nav>
 
       <div class="p-4 border-t border-white/10 space-y-2">
+        <button onclick="fetchLatestFromSheet(true)" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-emerald-600/80 hover:bg-emerald-600 text-xs font-semibold text-white transition cursor-pointer">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Sinkronkan dari Sheet</span>
+        </button>
         <button onclick="openModal('modal-pwa-help')" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-medium text-red-100 transition cursor-pointer">
           <i data-lucide="smartphone" class="w-3.5 h-3.5 text-emas-400"></i>
           <span>Install Aplikasi (PWA)</span>
@@ -352,10 +347,13 @@
         <div class="w-9 h-9 bg-white rounded-full p-0.5 shrink-0" id="mobile-logo-container"></div>
         <div class="min-w-0">
           <h1 class="font-extrabold text-sm leading-tight truncate">E-SK DPC ASLINMAS</h1>
-          <p class="text-[11px] text-emas-400 font-medium truncate" id="user-kabkota-mobile">KABUPATEN MALANG</p>
+          <p class="text-[11px] text-emas-400 font-medium truncate" id="user-kabkota-mobile">-</p>
         </div>
       </div>
       <div class="flex items-center gap-1.5">
+        <button onclick="fetchLatestFromSheet(true)" class="p-2 rounded-xl bg-emerald-600/80 hover:bg-emerald-600 text-white" title="Sinkronkan dari Sheet">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
         <button onclick="openModal('modal-pwa-help')" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white" title="Install PWA">
           <i data-lucide="download" class="w-4 h-4"></i>
         </button>
@@ -375,12 +373,12 @@
             <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div class="space-y-2 max-w-2xl">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-emas-400 text-xs font-bold">
-                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
-                  <span id="dash-status-mode">Terhubung Google Sheets API</span>
+                  <i data-lucide="database" class="w-3.5 h-3.5"></i>
+                  <span id="dash-status-mode">Sinkronisasi Google Sheets Aktif</span>
                 </div>
-                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight" id="dash-title-kabkota">DPC ASLINMAS KABUPATEN MALANG</h2>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight" id="dash-title-kabkota">DPC ASLINMAS</h2>
                 <p class="text-sm text-red-100 leading-relaxed">
-                  Lengkapi identitas surat keputusan dan susunan pengurus dari Dewan Pelindung hingga Bidang-Bidang Organisasi, lalu unduh draf SK resmi dalam format PDF.
+                  Data di bawah ini tersinkronisasi langsung dengan Google Sheets. Lengkapi identitas SK dan susunan pengurus, lalu unduh PDF resmi.
                 </p>
               </div>
               <div class="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
@@ -405,7 +403,7 @@
                 </div>
               </div>
               <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2" id="stat-total-pengurus">0</p>
-              <p class="text-xs text-slate-500 mt-1">Tercatat dalam Lampiran I</p>
+              <p class="text-xs text-slate-500 mt-1">Tercatat di Google Sheet</p>
             </div>
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
@@ -426,8 +424,8 @@
                   <i data-lucide="hash" class="w-4 h-4"></i>
                 </div>
               </div>
-              <p class="text-sm font-bold text-slate-900 mt-3 truncate" id="stat-nomor-sk">001/SK/DPP-ASLINMAS/XI/2026</p>
-              <p class="text-xs text-slate-500 mt-1" id="stat-tanggal-sk">23 November 2026</p>
+              <p class="text-sm font-bold text-slate-900 mt-3 truncate" id="stat-nomor-sk">-</p>
+              <p class="text-xs text-slate-500 mt-1" id="stat-tanggal-sk">-</p>
             </div>
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
@@ -446,11 +444,11 @@
             <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 class="font-bold text-slate-900">Kelengkapan Susunan Kepengurusan (A – R)</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Klik salah satu struktur untuk langsung menambah atau mengedit nama pengurus di dalamnya.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Klik salah satu struktur untuk menambah atau mengedit pengurus di Google Sheets.</p>
               </div>
-              <button onclick="resetToDefaultTemplate()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5 self-start cursor-pointer">
-                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                <span>Muat Contoh Draf Awal</span>
+              <button onclick="fetchLatestFromSheet(true)" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition inline-flex items-center gap-1.5 self-start cursor-pointer">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>Muat Ulang dari Sheet</span>
               </button>
             </div>
             <div id="dashboard-group-grid" class="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
@@ -462,16 +460,15 @@
           <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div class="p-6 border-b border-slate-100 bg-slate-50/50">
               <h2 class="text-lg font-extrabold text-slate-900">Identitas Surat Keputusan & Pengesahan</h2>
-              <p class="text-xs text-slate-500 mt-1">Data di bawah ini akan otomatis mengisi judul SK, diktum penetapan, lampiran, dan blok tanda tangan.</p>
+              <p class="text-xs text-slate-500 mt-1">Data di bawah ini tersinkronisasi dengan sheet <strong>DokumenSK</strong>.</p>
             </div>
 
             <form id="form-identitas-sk" onsubmit="saveIdentitasSK(event)" class="p-6 space-y-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nama Kabupaten / Kota *</label>
-                  <input type="text" id="input-kabkota" required placeholder="Contoh: KABUPATEN MALANG atau KOTA SURABAYA"
+                  <input type="text" id="input-kabkota" required placeholder="Contoh: KABUPATEN MALANG"
                     class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold uppercase focus:ring-2 focus:ring-patriot-800 focus:border-patriot-800 outline-none" />
-                  <p class="text-[11px] text-slate-400 mt-1">Gunakan huruf kapital, misal: KABUPATEN MALANG</p>
                 </div>
 
                 <div>
@@ -494,7 +491,7 @@
 
                 <div>
                   <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Masa Bakti *</label>
-                  <input type="text" id="input-masa-bakti" required value="2026 – 2031"
+                  <input type="text" id="input-masa-bakti" required placeholder="2026 – 2031"
                     class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 focus:border-patriot-800 outline-none" />
                 </div>
 
@@ -518,17 +515,17 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Ketua Umum DPP</label>
-                    <input type="text" id="input-ketum" required
+                    <input type="text" id="input-ketum" required placeholder="Nama Ketua Umum..."
                       class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
                   </div>
                   <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Sekretaris Jenderal</label>
-                    <input type="text" id="input-sekjen" required
+                    <input type="text" id="input-sekjen" required placeholder="Nama Sekjen..."
                       class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
                   </div>
                   <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Ketua Dewan Pengawas</label>
-                    <input type="text" id="input-pengawas" required
+                    <input type="text" id="input-pengawas" required placeholder="Nama Ketua Dewan Pengawas..."
                       class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-patriot-800 outline-none" />
                   </div>
                 </div>
@@ -537,7 +534,7 @@
               <div class="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-slate-100">
                 <button type="submit" id="btn-save-identitas" class="px-6 py-3 bg-patriot-800 hover:bg-patriot-900 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
                   <i data-lucide="save" class="w-4 h-4"></i>
-                  <span>Simpan Identitas SK</span>
+                  <span>Simpan ke Google Sheets</span>
                 </button>
               </div>
             </form>
@@ -549,12 +546,16 @@
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">Susunan Pengurus DPC ASLINMAS</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Setiap perubahan otomatis tersimpan dan disinkronkan ke Google Sheets.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Isi sesuai sheet <strong>Pengurus</strong>. Kosong jika belum ada data di Google Sheet.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
               <button onclick="openPengurusModal()" class="px-4 py-2.5 bg-patriot-800 hover:bg-patriot-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i>
                 <span>Tambah Pengurus</span>
+              </button>
+              <button onclick="fetchLatestFromSheet(true)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm rounded-xl transition flex items-center gap-2 cursor-pointer">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                <span>Refresh Sheet</span>
               </button>
               <button onclick="syncAllToBackend()" id="btn-sync-all" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
                 <i data-lucide="cloud-upload" class="w-4 h-4"></i>
@@ -623,7 +624,7 @@
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">Manajemen Akun Kabupaten / Kota</h2>
-              <p class="text-xs text-slate-500">Kelola akses login operator DPC ASLINMAS tiap Kabupaten/Kota se-Jawa Timur.</p>
+              <p class="text-xs text-slate-500">Kelola akses login operator DPC ASLINMAS sesuai sheet <strong>Users</strong>.</p>
             </div>
             <button onclick="openUserModal()" class="px-4 py-2.5 bg-patriot-800 hover:bg-patriot-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-2 self-start cursor-pointer">
               <i data-lucide="user-plus" class="w-4 h-4"></i>
@@ -677,9 +678,7 @@
     </nav>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL TAMBAH / EDIT PENGURUS                                          -->
-  <!-- ===================================================================== -->
+  <!-- MODAL TAMBAH / EDIT PENGURUS -->
   <div id="modal-pengurus" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -744,9 +743,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL TAMBAH / EDIT USER AKUN DAERAH (ADMIN)                          -->
-  <!-- ===================================================================== -->
+  <!-- MODAL TAMBAH / EDIT USER AKUN DAERAH (ADMIN) -->
   <div id="modal-user" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1014,64 +1011,25 @@
       }
     ];
 
-    const DEFAULT_USERS = [
-      { id: 'U01', username: 'admin', password: 'edudigital', role: 'Admin', kabkota: 'PROVINSI JAWA TIMUR' },
-      { id: 'U02', username: 'peserta', password: 'edudigital', role: 'Operator', kabkota: 'KABUPATEN MALANG' },
-      { id: 'U03', username: 'surabaya', password: 'edudigital', role: 'Operator', kabkota: 'KOTA SURABAYA' },
-      { id: 'U04', username: 'sidoarjo', password: 'edudigital', role: 'Operator', kabkota: 'KABUPATEN SIDOARJO' }
-    ];
-
-    function getInitialDummySK(kabkota = 'KABUPATEN MALANG') {
+    // Template struktur kosong (tidak ada data dummy yang muncul otomatis)
+    function getEmptySK(kabkota = '') {
       return {
         kabkota: kabkota,
-        nomorSK: '001/SK/DPP-ASLINMAS/XI/2026',
-        tempatSK: 'Jakarta',
-        tanggalSK: '23 November 2026',
+        nomorSK: '',
+        tempatSK: '',
+        tanggalSK: '',
         masaBakti: '2026 – 2031',
         sertakanUraian: true,
-        ketum: 'Letjen TNI (Purn) Untung Budiharto',
-        sekjen: 'Adhitya Yusma Perdana',
-        pengawas: 'Prof. Dr. Reda Manthovani, S.H., LL.M'
+        ketum: '',
+        sekjen: '',
+        pengawas: ''
       };
-    }
-
-    function getInitialDummyPengurus(kabkota = 'KABUPATEN MALANG') {
-      const cap = kabkota.replace(/^KABUPATEN\s+|^KOTA\s+/i, '');
-      return [
-        { id: 'P01', kelompok: 'A', nama: `Bupati ${cap}`, instansi: `Bupati ${cap}`, jabatanAslinmas: 'Ketua' },
-        { id: 'P02', kelompok: 'A', nama: `Ketua DPRD ${kabkota}`, instansi: `Ketua DPRD ${kabkota}`, jabatanAslinmas: 'Anggota' },
-        { id: 'P03', kelompok: 'B', nama: `Komandan Kodim 0818`, instansi: `Komandan Distrik Militer (Dandim)`, jabatanAslinmas: 'Ketua' },
-        { id: 'P04', kelompok: 'B', nama: `Kepala Kepolisian Resor ${cap}`, instansi: `Kapolres ${cap}`, jabatanAslinmas: 'Anggota' },
-        { id: 'P05', kelompok: 'C', nama: `Ketua MUI ${kabkota}`, instansi: `Ketua Majelis Ulama Indonesia (MUI) ${kabkota}`, jabatanAslinmas: 'Ketua' },
-        { id: 'P06', kelompok: 'C', nama: `Ketua TP PKK ${kabkota}`, instansi: `Ketua Tim Penggerak PKK ${kabkota}`, jabatanAslinmas: 'Anggota' },
-        { id: 'P07', kelompok: 'D', nama: `Wakil Bupati ${cap}`, instansi: `Wakil Bupati ${cap}`, jabatanAslinmas: 'Ketua' },
-        { id: 'P08', kelompok: 'E', nama: `Kepala Kejaksaan Negeri ${kabkota}`, instansi: `Kepala Kejaksaan Negeri ${kabkota}`, jabatanAslinmas: 'Ketua' },
-        { id: 'P09', kelompok: 'E', nama: `Inspektur Daerah ${kabkota}`, instansi: `Inspektur Daerah ${kabkota}`, jabatanAslinmas: 'Anggota' },
-        { id: 'P10', kelompok: 'F', nama: `Sekretaris Daerah ${kabkota}`, instansi: `Sekretaris Daerah ${kabkota}`, jabatanAslinmas: 'Ketua' },
-        { id: 'P11', kelompok: 'F', nama: `Kepala Bakesbangpol ${kabkota}`, instansi: `Kepala Badan Kesatuan Bangsa dan Politik ${kabkota}`, jabatanAslinmas: 'Wakil Ketua I' },
-        { id: 'P12', kelompok: 'F', nama: `Ketua DPC ABPEDNAS ${kabkota}`, instansi: `Ketua DPC ABPEDNAS ${kabkota}`, jabatanAslinmas: 'Wakil Ketua II' },
-        { id: 'P13', kelompok: 'F', nama: `Kasi Intelijen Kejaksaan Negeri`, instansi: `Kepala Seksi Intelijen Kejaksaan Negeri ${kabkota}`, jabatanAslinmas: 'Wakil Ketua III' },
-        { id: 'P14', kelompok: 'G', nama: `Kepala Satpol PP ${kabkota}`, instansi: `Kepala Satuan Polisi Pamong Praja ${kabkota}`, jabatanAslinmas: 'Sekretaris (Ketua Harian)' },
-        { id: 'P15', kelompok: 'G', nama: `Sekretaris Bakesbangpol ${kabkota}`, instansi: `Sekretaris Badan Kesatuan Bangsa dan Politik ${kabkota}`, jabatanAslinmas: 'Wakil Sekretaris I' },
-        { id: 'P16', kelompok: 'H', nama: `Sekretaris Satpol PP ${kabkota}`, instansi: `Sekretaris Satuan Polisi Pamong Praja ${kabkota}`, jabatanAslinmas: 'Bendahara' },
-        { id: 'P17', kelompok: 'H', nama: `Kasubag Umum Bakesbangpol`, instansi: `Kasubag Umum dan Kepegawaian Bakesbangpol`, jabatanAslinmas: 'Wakil Bendahara I' },
-        { id: 'P18', kelompok: 'I', nama: `Kepala BKPSDM ${kabkota}`, instansi: `Kepala Badan Kepegawaian dan Pengembangan SDM`, jabatanAslinmas: 'Ketua' },
-        { id: 'P19', kelompok: 'J', nama: `Kasat Binmas Polres ${cap}`, instansi: `Kepala Satuan Pembinaan Masyarakat Polres ${cap}`, jabatanAslinmas: 'Ketua' },
-        { id: 'P20', kelompok: 'K', nama: `Ketua KADIN ${kabkota}`, instansi: `Ketua Kamar Dagang dan Industri (KADIN) ${kabkota}`, jabatanAslinmas: 'Ketua' },
-        { id: 'P21', kelompok: 'L', nama: `Ketua KONI ${kabkota}`, instansi: `Ketua Komite Olahraga Nasional Indonesia (KONI)`, jabatanAslinmas: 'Ketua' },
-        { id: 'P22', kelompok: 'M', nama: `Kepala Dinas PMD ${kabkota}`, instansi: `Kepala Dinas Pemberdayaan Masyarakat dan Desa`, jabatanAslinmas: 'Ketua' },
-        { id: 'P23', kelompok: 'N', nama: `Kepala Bagian Hukum Setda`, instansi: `Kepala Bagian Hukum Sekretariat Daerah ${kabkota}`, jabatanAslinmas: 'Ketua' },
-        { id: 'P24', kelompok: 'O', nama: `Kabid Linmas Satpol PP`, instansi: `Kepala Bidang Pelindungan Masyarakat Satpol PP`, jabatanAslinmas: 'Ketua' },
-        { id: 'P25', kelompok: 'P', nama: `Kepala Pelaksana BPBD ${kabkota}`, instansi: `Kepala Pelaksana Badan Penanggulangan Bencana Daerah`, jabatanAslinmas: 'Ketua' },
-        { id: 'P26', kelompok: 'Q', nama: `Kepala Dinas Sosial ${kabkota}`, instansi: `Kepala Dinas Sosial ${kabkota}`, jabatanAslinmas: 'Ketua' },
-        { id: 'P27', kelompok: 'R', nama: `Kepala Dinas Kominfo ${kabkota}`, instansi: `Kepala Dinas Komunikasi dan Informatika ${kabkota}`, jabatanAslinmas: 'Ketua' }
-      ];
     }
 
     let appState = {
       currentUser: null,
       users: [],
-      dokumenSK: getInitialDummySK(),
+      dokumenSK: getEmptySK(),
       pengurusList: []
     };
 
@@ -1194,7 +1152,7 @@
     }
 
     // =========================================================================
-    // 6. AUTENTIKASI LOGIN & SINKRONISASI DATA
+    // 6. AUTENTIKASI LOGIN & SINKRONISASI LANGSUNG KE GOOGLE SHEETS
     // =========================================================================
     function togglePasswordVisibility() {
       const pwd = document.getElementById('login-password');
@@ -1221,85 +1179,62 @@
       }
 
       btn.disabled = true;
-      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menghubungkan ke Google Sheets...</span>`;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Memuat data dari Google Sheets...</span>`;
       lucide.createIcons();
 
-      if (IS_PREVIEW) {
-        setTimeout(() => {
-          const savedUsers = JSON.parse(localStorage.getItem('aslinmas_users') || 'null') || DEFAULT_USERS;
-          appState.users = savedUsers;
+      try {
+        const res = await callGasApi('loginUser', { username, password });
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke Sistem</span>`;
+        lucide.createIcons();
 
-          const found = savedUsers.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
-          btn.disabled = false;
-          btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke Sistem</span>`;
-          lucide.createIcons();
+        if (res && res.success) {
+          appState.currentUser = res.user;
+          appState.dokumenSK = res.dokumenSK || getEmptySK(res.user.kabkota);
+          // Kosong jika di Google Sheet kosong, terisi jika di Google Sheet ada datanya
+          appState.pengurusList = Array.isArray(res.pengurusList) ? res.pengurusList : [];
+          appState.users = Array.isArray(res.users) ? res.users : [];
 
-          if (found) {
-            appState.currentUser = found;
-            localStorage.setItem('aslinmas_session', JSON.stringify(found));
-            loadLocalDataForKabKota(found.kabkota);
-            enterApp();
-            showToast(`Selamat datang, ${found.kabkota}!`, 'success');
-          } else {
-            showToast('Username atau kata sandi salah!', 'error');
+          localStorage.setItem('aslinmas_session', JSON.stringify(res.user));
+          enterApp();
+          showToast(`Terhubung dengan sheet: ${res.user.kabkota} (${appState.pengurusList.length} pengurus)`, 'success');
+        } else {
+          showToast(res?.message || 'Login gagal. Periksa username & password.', 'error');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke Sistem</span>`;
+        lucide.createIcons();
+        showToast('Gagal terhubung ke GAS: ' + err.message, 'error');
+      }
+    }
+
+    async function fetchLatestFromSheet(showNotif = false) {
+      if (!appState.currentUser) return;
+      const kabkota = appState.currentUser.kabkota;
+      if (showNotif) {
+        showToast('Mengambil data terbaru dari Google Sheets...', 'info');
+      }
+
+      try {
+        const fresh = await callGasApi('getKabKotaData', { kabkota });
+        if (fresh && fresh.success) {
+          appState.dokumenSK = fresh.dokumenSK || getEmptySK(kabkota);
+          appState.pengurusList = Array.isArray(fresh.pengurusList) ? fresh.pengurusList : [];
+          populateIdentitasForm();
+          refreshAllViews();
+          if (showNotif) {
+            showToast(`Data tersinkron (${appState.pengurusList.length} pengurus dari Sheet).`, 'success');
           }
-        }, 400);
-      } else {
-        try {
-          const res = await callGasApi('loginUser', { username, password });
-          btn.disabled = false;
-          btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke Sistem</span>`;
-          lucide.createIcons();
-
-          if (res && res.success) {
-            appState.currentUser = res.user;
-            appState.dokumenSK = res.dokumenSK || getInitialDummySK(res.user.kabkota);
-            appState.pengurusList = (res.pengurusList && res.pengurusList.length > 0)
-              ? res.pengurusList
-              : getInitialDummyPengurus(res.user.kabkota);
-            appState.users = res.users || [];
-            localStorage.setItem('aslinmas_session', JSON.stringify(res.user));
-            saveToLocalStorage();
-            enterApp();
-            showToast(`Login berhasil: ${res.user.kabkota}`, 'success');
-          } else {
-            showToast(res?.message || 'Login gagal. Periksa username & password.', 'error');
-          }
-        } catch (err) {
-          btn.disabled = false;
-          btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke Sistem</span>`;
-          lucide.createIcons();
-          showToast('Gagal terhubung ke GAS: ' + err.message, 'error');
+        }
+      } catch (err) {
+        if (showNotif) {
+          showToast('Gagal memuat ulang dari Sheet: ' + err.message, 'error');
         }
       }
     }
 
-    function loadLocalDataForKabKota(kabkota) {
-      const storageKey = `aslinmas_data_${kabkota.replace(/\s+/g, '_')}`;
-      const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
-      if (saved) {
-        appState.dokumenSK = saved.dokumenSK;
-        appState.pengurusList = saved.pengurusList;
-      } else {
-        appState.dokumenSK = getInitialDummySK(kabkota);
-        appState.pengurusList = getInitialDummyPengurus(kabkota);
-        saveToLocalStorage();
-      }
-    }
-
-    function saveToLocalStorage() {
-      if (!appState.currentUser) return;
-      const kabkota = appState.dokumenSK.kabkota || appState.currentUser.kabkota;
-      const storageKey = `aslinmas_data_${kabkota.replace(/\s+/g, '_')}`;
-      localStorage.setItem(storageKey, JSON.stringify({
-        dokumenSK: appState.dokumenSK,
-        pengurusList: appState.pengurusList
-      }));
-    }
-
     async function autoSyncBackground() {
-      saveToLocalStorage();
-      if (IS_PREVIEW) return;
       try {
         await callGasApi('saveAllSKData', {
           dokumenSK: appState.dokumenSK,
@@ -1312,6 +1247,8 @@
 
     function handleLogout() {
       appState.currentUser = null;
+      appState.dokumenSK = getEmptySK();
+      appState.pengurusList = [];
       localStorage.removeItem('aslinmas_session');
       document.getElementById('app-view').classList.add('hidden');
       document.getElementById('login-view').classList.remove('hidden');
@@ -1327,10 +1264,6 @@
       document.getElementById('user-role-desktop').textContent = user.role === 'Admin' ? 'Admin Provinsi Jatim' : 'Operator DPC Kab/Kota';
       document.getElementById('user-kabkota-mobile').textContent = user.kabkota;
       document.getElementById('user-avatar-desktop').textContent = user.role === 'Admin' ? 'AD' : 'OP';
-
-      document.getElementById('dash-status-mode').textContent = IS_PREVIEW
-        ? 'Mode Preview (Penyimpanan Lokal)'
-        : 'Terhubung Google Sheets API';
 
       if (user.role === 'Admin') {
         document.getElementById('nav-admin-desktop').classList.remove('hidden');
@@ -1414,12 +1347,14 @@
       const sk = appState.dokumenSK;
       const list = appState.pengurusList;
 
-      document.getElementById('dash-title-kabkota').textContent = `DPC ASLINMAS ${sk.kabkota}`;
+      document.getElementById('dash-title-kabkota').textContent = `DPC ASLINMAS ${sk.kabkota || ''}`;
       document.getElementById('stat-total-pengurus').textContent = list.length;
       document.getElementById('badge-count-pengurus').textContent = list.length;
-      document.getElementById('stat-nomor-sk').textContent = sk.nomorSK;
-      document.getElementById('stat-tanggal-sk').textContent = `${sk.tempatSK}, ${sk.tanggalSK}`;
-      document.getElementById('stat-masa-bakti').textContent = sk.masaBakti;
+      document.getElementById('stat-nomor-sk').textContent = sk.nomorSK || '(Belum diisi)';
+      document.getElementById('stat-tanggal-sk').textContent = (sk.tempatSK || sk.tanggalSK)
+        ? `${sk.tempatSK}${sk.tempatSK && sk.tanggalSK ? ', ' : ''}${sk.tanggalSK}`
+        : 'Belum ditetapkan';
+      document.getElementById('stat-masa-bakti').textContent = sk.masaBakti || '2026 – 2031';
 
       const filledGroups = new Set(list.map(p => p.kelompok)).size;
       document.getElementById('stat-kelompok-terisi').textContent = filledGroups;
@@ -1451,28 +1386,20 @@
       renderPengurusList();
     }
 
-    function resetToDefaultTemplate() {
-      const kabkota = appState.dokumenSK.kabkota || 'KABUPATEN MALANG';
-      appState.pengurusList = getInitialDummyPengurus(kabkota);
-      refreshAllViews();
-      autoSyncBackground();
-      showToast('Contoh draf pengurus standar dimuat & disinkronkan.', 'success');
-    }
-
     // =========================================================================
     // 9. TAB 2: IDENTITAS & KOP SK
     // =========================================================================
     function populateIdentitasForm() {
       const sk = appState.dokumenSK;
-      document.getElementById('input-kabkota').value = sk.kabkota;
-      document.getElementById('input-nomor-sk').value = sk.nomorSK;
-      document.getElementById('input-tempat-sk').value = sk.tempatSK;
-      document.getElementById('input-tanggal-sk').value = sk.tanggalSK;
-      document.getElementById('input-masa-bakti').value = sk.masaBakti;
+      document.getElementById('input-kabkota').value = sk.kabkota || '';
+      document.getElementById('input-nomor-sk').value = sk.nomorSK || '';
+      document.getElementById('input-tempat-sk').value = sk.tempatSK || '';
+      document.getElementById('input-tanggal-sk').value = sk.tanggalSK || '';
+      document.getElementById('input-masa-bakti').value = sk.masaBakti || '2026 – 2031';
       document.getElementById('input-sertakan-uraian').checked = sk.sertakanUraian !== false;
-      document.getElementById('input-ketum').value = sk.ketum;
-      document.getElementById('input-sekjen').value = sk.sekjen;
-      document.getElementById('input-pengawas').value = sk.pengawas;
+      document.getElementById('input-ketum').value = sk.ketum || '';
+      document.getElementById('input-sekjen').value = sk.sekjen || '';
+      document.getElementById('input-pengawas').value = sk.pengawas || '';
     }
 
     async function saveIdentitasSK(event) {
@@ -1489,26 +1416,21 @@
         pengawas: document.getElementById('input-pengawas').value.trim()
       };
 
-      saveToLocalStorage();
       refreshAllViews();
 
-      if (!IS_PREVIEW) {
-        const btn = document.getElementById('btn-save-identitas');
-        btn.disabled = true;
-        try {
-          const res = await callGasApi('saveDokumenSK', { dokumenSK: appState.dokumenSK });
-          if (res && res.success) {
-            showToast('Identitas SK tersimpan ke Google Sheets!', 'success');
-          } else {
-            showToast(res?.message || 'Gagal menyimpan ke server.', 'error');
-          }
-        } catch (err) {
-          showToast('Gagal simpan ke server: ' + err.message, 'error');
-        } finally {
-          btn.disabled = false;
+      const btn = document.getElementById('btn-save-identitas');
+      btn.disabled = true;
+      try {
+        const res = await callGasApi('saveDokumenSK', { dokumenSK: appState.dokumenSK });
+        if (res && res.success) {
+          showToast('Identitas SK tersimpan ke Google Sheets!', 'success');
+        } else {
+          showToast(res?.message || 'Gagal menyimpan ke server.', 'error');
         }
-      } else {
-        showToast('Identitas SK berhasil diperbarui!', 'success');
+      } catch (err) {
+        showToast('Gagal simpan ke server: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
       }
     }
 
@@ -1535,7 +1457,7 @@
         }
 
         const rowsHtml = members.length === 0
-          ? `<div class="p-5 text-center text-xs text-slate-400 italic">Belum ada pengurus pada kelompok ini. Klik "+ Tambah di ${grp.kode}" untuk mengisi.</div>`
+          ? `<div class="p-5 text-center text-xs text-slate-400 italic">Kosong (belum ada data di sheet untuk kelompok ${grp.kode}).</div>`
           : `<div class="divide-y divide-slate-100">
               ${members.map((m, idx) => `
                 <div class="p-3.5 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 transition">
@@ -1627,7 +1549,7 @@
         const idx = appState.pengurusList.findIndex(p => p.id === editId);
         if (idx !== -1) {
           appState.pengurusList[idx] = { id: editId, kelompok, nama, instansi, jabatanAslinmas };
-          showToast('Data pengurus diperbarui & disinkronkan...', 'success');
+          showToast('Data pengurus diperbarui & dikirim ke Sheet...', 'success');
         }
       } else {
         appState.pengurusList.push({
@@ -1637,7 +1559,7 @@
           instansi,
           jabatanAslinmas
         });
-        showToast('Pengurus ditambahkan & disinkronkan...', 'success');
+        showToast('Pengurus ditambahkan & dikirim ke Sheet...', 'success');
       }
 
       closeModal('modal-pengurus');
@@ -1648,7 +1570,7 @@
     function deletePengurus(id) {
       appState.pengurusList = appState.pengurusList.filter(p => p.id !== id);
       refreshAllViews();
-      showToast('Baris dihapus & disinkronkan...', 'info');
+      showToast('Baris dihapus & disinkronkan ke Sheet...', 'info');
       autoSyncBackground();
     }
 
@@ -1676,12 +1598,6 @@
     }
 
     async function syncAllToBackend() {
-      saveToLocalStorage();
-      if (IS_PREVIEW) {
-        showToast('Seluruh perubahan tersimpan aman di penyimpanan lokal browser!', 'success');
-        return;
-      }
-
       const btn = document.getElementById('btn-sync-all');
       btn.disabled = true;
       btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menyimpan...</span>`;
@@ -1693,7 +1609,7 @@
           pengurusList: appState.pengurusList
         });
         if (res && res.success) {
-          showToast('Semua data pengurus berhasil disinkronkan ke Google Sheets!', 'success');
+          showToast('Semua data berhasil disinkronkan ke Google Sheets!', 'success');
         } else {
           showToast(res?.message || 'Gagal menyinkronkan data.', 'error');
         }
@@ -1916,7 +1832,7 @@
       if (!tableRowsHtml) {
         tableRowsHtml = `
           <tr>
-            <td colspan="4" style="text-align: center; padding: 16px; font-style: italic;">Belum ada data pengurus yang diinput.</td>
+            <td colspan="4" style="text-align: center; padding: 16px; font-style: italic;">Belum ada data pengurus di Google Sheets.</td>
           </tr>
         `;
       }
@@ -2106,39 +2022,31 @@
         appState.users.push({ id: 'U_' + Date.now(), kabkota, username, password, role });
       }
 
-      localStorage.setItem('aslinmas_users', JSON.stringify(appState.users));
       renderAdminUsersTable();
       closeModal('modal-user');
 
-      if (!IS_PREVIEW) {
-        try {
-          await callGasApi('saveUsersList', { users: appState.users });
-          showToast('Akun daerah tersimpan ke Google Sheets.', 'success');
-        } catch (err) {
-          showToast('Gagal menyimpan akun ke server: ' + err.message, 'error');
-        }
-      } else {
-        showToast('Akun daerah berhasil disimpan.', 'success');
+      try {
+        await callGasApi('saveUsersList', { users: appState.users });
+        showToast('Akun daerah tersimpan ke Google Sheets.', 'success');
+      } catch (err) {
+        showToast('Gagal menyimpan akun ke server: ' + err.message, 'error');
       }
     }
 
     async function deleteUserAccount(id) {
       appState.users = appState.users.filter(u => u.id !== id);
-      localStorage.setItem('aslinmas_users', JSON.stringify(appState.users));
       renderAdminUsersTable();
       showToast('Akun berhasil dihapus.', 'info');
 
-      if (!IS_PREVIEW) {
-        try {
-          await callGasApi('saveUsersList', { users: appState.users });
-        } catch (err) {
-          console.error(err);
-        }
+      try {
+        await callGasApi('saveUsersList', { users: appState.users });
+      } catch (err) {
+        console.error(err);
       }
     }
 
     // =========================================================================
-    // 13. UTILITY & ONLOAD BOOTSTRAP (AUTO-REFRESH DARI GOOGLE SHEETS)
+    // 13. UTILITY & ONLOAD BOOTSTRAP (LANGSUNG DARI GOOGLE SHEETS)
     // =========================================================================
     function escapeHtml(text) {
       if (!text) return '';
@@ -2156,35 +2064,17 @@
         if (el) el.innerHTML = ASLINMAS_LOGO_SVG;
       });
 
-      if (IS_PREVIEW) {
-        document.getElementById('preview-badge').classList.remove('hidden');
-      }
-
       initPWA();
 
       const savedSession = JSON.parse(localStorage.getItem('aslinmas_session') || 'null');
       if (savedSession) {
-        appState.users = JSON.parse(localStorage.getItem('aslinmas_users') || 'null') || DEFAULT_USERS;
         appState.currentUser = savedSession;
-        loadLocalDataForKabKota(savedSession.kabkota);
+        appState.dokumenSK = getEmptySK(savedSession.kabkota);
+        appState.pengurusList = [];
         enterApp();
 
-        if (!IS_PREVIEW) {
-          try {
-            const fresh = await callGasApi('getKabKotaData', { kabkota: savedSession.kabkota });
-            if (fresh && fresh.success) {
-              appState.dokumenSK = fresh.dokumenSK;
-              if (fresh.pengurusList && fresh.pengurusList.length > 0) {
-                appState.pengurusList = fresh.pengurusList;
-              }
-              saveToLocalStorage();
-              populateIdentitasForm();
-              refreshAllViews();
-            }
-          } catch (e) {
-            console.warn('Gagal menyegarkan data dari Sheets:', e);
-          }
-        }
+        // Langsung tarik data asli dari Google Sheets
+        await fetchLatestFromSheet(false);
       }
 
       lucide.createIcons();
