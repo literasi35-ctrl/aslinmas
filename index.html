@@ -137,7 +137,7 @@
     const IS_PREVIEW = false; // false = terhubung langsung ke Google Apps Script
     const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwZR1-956jpecw3wveiipmyJS6Gc9_GgJtAp1HilqdXBCdaZ8Rn1lP0T85DDwsvAhHjPg/exec";
 
-    // Helper Fetch API ke Google Apps Script (menggunakan text/plain agar bebas CORS preflight)
+    // Helper Fetch API ke Google Apps Script (menggunakan text/plain agar bebas CORS preflight) 
     async function callGasApi(action, payload = {}) {
       const response = await fetch(GAS_WEBAPP_URL, {
         method: "POST",
