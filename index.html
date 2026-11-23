@@ -56,13 +56,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
-    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Gaya Dokumen Resmi SK */
     .sk-document {
       font-family: 'Tinos', 'Times New Roman', serif;
       color: #000000;
@@ -100,7 +98,6 @@
       break-inside: avoid;
     }
 
-    /* Print Styling (F4 / A4 Native Print) */
     @media print {
       body {
         background: #ffffff !important;
@@ -134,10 +131,9 @@
   <!-- KONFIGURASI KONEKSI GITHUB PAGES -> GOOGLE APPS SCRIPT WEB APP        -->
   <!-- ===================================================================== -->
   <script>
-    const IS_PREVIEW = false; // false = terhubung langsung ke Google Apps Script
+    const IS_PREVIEW = false;
     const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwZR1-956jpecw3wveiipmyJS6Gc9_GgJtAp1HilqdXBCdaZ8Rn1lP0T85DDwsvAhHjPg/exec";
 
-    // Helper Fetch API ke Google Apps Script (menggunakan text/plain agar bebas CORS preflight) 
     async function callGasApi(action, payload = {}) {
       const response = await fetch(GAS_WEBAPP_URL, {
         method: "POST",
@@ -156,19 +152,15 @@
       try {
         return JSON.parse(text);
       } catch (e) {
-        throw new Error("Respons server bukan JSON valid. Pastikan fungsi doPost(e) sudah dipasang & di-deploy ulang.");
+        throw new Error("Respons server bukan JSON valid. Pastikan Code.gs sudah di-deploy ulang (New version).");
       }
     }
   </script>
 
-  <!-- ===================================================================== -->
-  <!-- TOAST / MESSAGE BOX (PENGGANTI ALERT)                                 -->
-  <!-- ===================================================================== -->
+  <!-- TOAST / MESSAGE BOX -->
   <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print px-4 sm:px-0"></div>
 
-  <!-- ===================================================================== -->
-  <!-- BANNER INSTALL PWA                                                    -->
-  <!-- ===================================================================== -->
+  <!-- BANNER INSTALL PWA -->
   <div id="pwa-install-banner" class="hidden fixed bottom-20 lg:bottom-5 right-4 left-4 lg:left-auto lg:w-96 z-40 bg-gradient-to-r from-patriot-900 to-patriot-800 text-white p-4 rounded-2xl shadow-2xl border border-emas-500/40 no-print transition-all">
     <div class="flex items-start gap-3">
       <div class="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-emas-400/50">
@@ -189,9 +181,7 @@
     </div>
   </div>
 
-  <!-- ===================================================================== -->
-  <!-- MODAL BANTUAN INSTALL PWA MANUAL                                      -->
-  <!-- ===================================================================== -->
+  <!-- MODAL BANTUAN INSTALL PWA MANUAL -->
   <div id="modal-pwa-help" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -386,7 +376,7 @@
               <div class="space-y-2 max-w-2xl">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-emas-400 text-xs font-bold">
                   <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
-                  <span id="dash-status-mode">Terhubung Database</span>
+                  <span id="dash-status-mode">Terhubung Google Sheets API</span>
                 </div>
                 <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight" id="dash-title-kabkota">DPC ASLINMAS KABUPATEN MALANG</h2>
                 <p class="text-sm text-red-100 leading-relaxed">
@@ -559,7 +549,7 @@
           <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">Susunan Pengurus DPC ASLINMAS</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Tambah, ubah, hapus, atau atur urutan pengurus berdasarkan struktur A s.d. R.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Setiap perubahan otomatis tersimpan dan disinkronkan ke Google Sheets.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
               <button onclick="openPengurusModal()" class="px-4 py-2.5 bg-patriot-800 hover:bg-patriot-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow transition flex items-center gap-2 cursor-pointer">
@@ -1204,7 +1194,7 @@
     }
 
     // =========================================================================
-    // 6. AUTENTIKASI LOGIN & SESSION MANAGEMENT
+    // 6. AUTENTIKASI LOGIN & SINKRONISASI DATA
     // =========================================================================
     function togglePasswordVisibility() {
       const pwd = document.getElementById('login-password');
@@ -1231,7 +1221,7 @@
       }
 
       btn.disabled = true;
-      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menghubungkan ke Server...</span>`;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menghubungkan ke Google Sheets...</span>`;
       lucide.createIcons();
 
       if (IS_PREVIEW) {
@@ -1305,6 +1295,19 @@
         dokumenSK: appState.dokumenSK,
         pengurusList: appState.pengurusList
       }));
+    }
+
+    async function autoSyncBackground() {
+      saveToLocalStorage();
+      if (IS_PREVIEW) return;
+      try {
+        await callGasApi('saveAllSKData', {
+          dokumenSK: appState.dokumenSK,
+          pengurusList: appState.pengurusList
+        });
+      } catch (err) {
+        showToast('Gagal sinkron otomatis ke Sheets: ' + err.message, 'error');
+      }
     }
 
     function handleLogout() {
@@ -1451,9 +1454,9 @@
     function resetToDefaultTemplate() {
       const kabkota = appState.dokumenSK.kabkota || 'KABUPATEN MALANG';
       appState.pengurusList = getInitialDummyPengurus(kabkota);
-      saveToLocalStorage();
       refreshAllViews();
-      showToast('Contoh draf pengurus standar berhasil dimuat ulang.', 'success');
+      autoSyncBackground();
+      showToast('Contoh draf pengurus standar dimuat & disinkronkan.', 'success');
     }
 
     // =========================================================================
@@ -1510,7 +1513,7 @@
     }
 
     // =========================================================================
-    // 10. TAB 3: CRUD & PENGURUTAN SUSUNAN PENGURUS
+    // 10. TAB 3: CRUD & PENGURUTAN SUSUNAN PENGURUS (AUTO-SYNC)
     // =========================================================================
     function renderPengurusList() {
       const container = document.getElementById('pengurus-list-container');
@@ -1624,30 +1627,29 @@
         const idx = appState.pengurusList.findIndex(p => p.id === editId);
         if (idx !== -1) {
           appState.pengurusList[idx] = { id: editId, kelompok, nama, instansi, jabatanAslinmas };
-          showToast('Data pengurus berhasil diperbarui.', 'success');
+          showToast('Data pengurus diperbarui & disinkronkan...', 'success');
         }
       } else {
-        const newItem = {
+        appState.pengurusList.push({
           id: 'P_' + Date.now(),
           kelompok,
           nama,
           instansi,
           jabatanAslinmas
-        };
-        appState.pengurusList.push(newItem);
-        showToast('Pengurus baru berhasil ditambahkan.', 'success');
+        });
+        showToast('Pengurus ditambahkan & disinkronkan...', 'success');
       }
 
-      saveToLocalStorage();
       closeModal('modal-pengurus');
       refreshAllViews();
+      autoSyncBackground();
     }
 
     function deletePengurus(id) {
       appState.pengurusList = appState.pengurusList.filter(p => p.id !== id);
-      saveToLocalStorage();
       refreshAllViews();
-      showToast('Baris pengurus dihapus.', 'info');
+      showToast('Baris dihapus & disinkronkan...', 'info');
+      autoSyncBackground();
     }
 
     function movePengurus(id, direction) {
@@ -1669,8 +1671,8 @@
       appState.pengurusList[idxA] = appState.pengurusList[idxB];
       appState.pengurusList[idxB] = temp;
 
-      saveToLocalStorage();
       renderPengurusList();
+      autoSyncBackground();
     }
 
     async function syncAllToBackend() {
@@ -2136,7 +2138,7 @@
     }
 
     // =========================================================================
-    // 13. UTILITY & ONLOAD BOOTSTRAP
+    // 13. UTILITY & ONLOAD BOOTSTRAP (AUTO-REFRESH DARI GOOGLE SHEETS)
     // =========================================================================
     function escapeHtml(text) {
       if (!text) return '';
@@ -2148,7 +2150,7 @@
         .replace(/'/g, "&#039;");
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       ['login-logo-container', 'sidebar-logo-container', 'mobile-logo-container'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = ASLINMAS_LOGO_SVG;
@@ -2166,6 +2168,23 @@
         appState.currentUser = savedSession;
         loadLocalDataForKabKota(savedSession.kabkota);
         enterApp();
+
+        if (!IS_PREVIEW) {
+          try {
+            const fresh = await callGasApi('getKabKotaData', { kabkota: savedSession.kabkota });
+            if (fresh && fresh.success) {
+              appState.dokumenSK = fresh.dokumenSK;
+              if (fresh.pengurusList && fresh.pengurusList.length > 0) {
+                appState.pengurusList = fresh.pengurusList;
+              }
+              saveToLocalStorage();
+              populateIdentitasForm();
+              refreshAllViews();
+            }
+          } catch (e) {
+            console.warn('Gagal menyegarkan data dari Sheets:', e);
+          }
+        }
       }
 
       lucide.createIcons();
